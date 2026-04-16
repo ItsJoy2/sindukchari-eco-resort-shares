@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Exports;
+
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Events\AfterSheet;
+
+class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
+{
+    protected $data;
+    protected $request;
+
+    public function __construct($data, $request = null)
+    {
+        $this->data = $data;
+        $this->request = $request;
+    }
+
+    public function collection()
+    {
+        $rows = collect();
+
+        // ===== TITLE & FILTER INFO =====
+        $rows->push(['Accounts Report']);
+        $rows->push(['Date Range: ' . ($this->request->date_range ?? 'All')]);
+        $rows->push(['Filter: ' . ($this->request->filter ?? 'All')]);
+        $rows->push(['Search: ' . ($this->request->search ?? '-')]);
+        $rows->push([]);
+
+        // ===== HEADER =====
+        $rows->push(['Date','Title','Type','Category','Amount','Note']);
+
+        // ===== DATA =====
+        foreach ($this->data as $row) {
+            $rows->push([
+                $row['date'],
+                $row['title'],
+                $row['type'],
+                $row['category'],
+                $row['amount'],
+                $row['note'],
+            ]);
+        }
+
+        return $rows;
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+
+                $sheet = $event->sheet->getDelegate();
+
+                // ===== ROW SETUP =====
+                $headerRow = 5;
+                $dataStart = 6;
+                $rowCount = $dataStart + count($this->data) - 1;
+
+                // ===== MERGE CELLS =====
+                $sheet->mergeCells('A1:F1');
+                $sheet->mergeCells('A2:F2');
+                $sheet->mergeCells('A3:F3');
+                $sheet->mergeCells('A4:F4');
+
+                // ===== ALIGN CENTER =====
+                $sheet->getStyle('A1:A4')->getAlignment()->setHorizontal('center');
+
+                // ===== TITLE STYLE =====
+                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+
+                // ===== HEADER STYLE =====
+                $sheet->getStyle("A{$headerRow}:F{$headerRow}")
+                    ->getFont()
+                    ->setBold(true);
+
+                // OPTIONAL HEADER BG
+                $sheet->getStyle("A{$headerRow}:F{$headerRow}")
+                    ->getFill()
+                    ->setFillType('solid')
+                    ->getStartColor()
+                    ->setRGB('D9D9D9');
+
+                // ===== TABLE BORDER =====
+                $sheet->getStyle("A{$headerRow}:F{$rowCount}")
+                    ->getBorders()
+                    ->getAllBorders()
+                    ->setBorderStyle('thin');
+
+                // ===== OUTER BORDER =====
+                $sheet->getStyle("A1:F{$rowCount}")
+                    ->getBorders()
+                    ->getOutline()
+                    ->setBorderStyle('medium');
+            }
+        ];
+    }
+}

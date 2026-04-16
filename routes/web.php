@@ -1,23 +1,24 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CronController;
+use App\Http\Controllers\admin\AccountsCategoryController;
+use App\Http\Controllers\admin\AccountsController;
+use App\Http\Controllers\admin\AdminDashboardController;
+use App\Http\Controllers\admin\AdminTicketController;
+use App\Http\Controllers\admin\AuthenticatedSessionController;
+use App\Http\Controllers\admin\BonusSettingController;
+use App\Http\Controllers\admin\DepositController;
+use App\Http\Controllers\admin\DepositMethodController;
+use App\Http\Controllers\admin\GeneralSettingsController;
 use App\Http\Controllers\admin\KycController;
 use App\Http\Controllers\admin\PlansController;
-use App\Http\Controllers\admin\UsersController;
-use App\Http\Controllers\admin\DepositController;
-use App\Http\Controllers\admin\CategoryController;
-use App\Http\Controllers\admin\WithdrawController;
-use App\Http\Controllers\admin\AdminTicketController;
-use App\Http\Controllers\admin\BonusSettingController;
-use App\Http\Controllers\admin\TransactionsController;
-use App\Http\Controllers\admin\DepositMethodController;
-use App\Http\Controllers\admin\AdminDashboardController;
-use App\Http\Controllers\admin\GeneralSettingsController;
 use App\Http\Controllers\admin\PoolDistributionController;
+use App\Http\Controllers\admin\TransactionsController;
 use App\Http\Controllers\admin\TransferSettingsController;
+use App\Http\Controllers\admin\UsersController;
+use App\Http\Controllers\admin\WithdrawController;
 use App\Http\Controllers\admin\WithdrawSettingsController;
-use App\Http\Controllers\admin\AuthenticatedSessionController;
+use App\Http\Controllers\CronController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('user.dashboard');
@@ -109,17 +110,33 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         'destroy' => 'admin.deposit_methods.destroy'
     ]);
 
-    // Category
-    Route::resource('categories', CategoryController::class)->names([
-        'index' => 'admin.categories.index',
-        'create' => 'admin.categories.create',
-        'store' => 'admin.categories.store',
-        'show' => 'admin.categories.show',
-        'edit' => 'admin.categories.edit',
-        'update' => 'admin.categories.update',
-        'destroy' => 'admin.categories.destroy'
+    // Accounts Category
+    Route::resource('accounts-category', AccountsCategoryController::class)->names([
+        'index' => 'admin.accounts-category.index',
+        'create' => 'admin.accounts-category.create',
+        'store' => 'admin.accounts-category.store',
+        'show' => 'admin.accounts-category.show',
+        'edit' => 'admin.accounts-category.edit',
+        'update' => 'admin.accounts-category.update',
+        'destroy' => 'admin.accounts-category.destroy'
     ]);
 
+    // Accounts
+    Route::resource('accounts', AccountsController::class)->names([
+        'index' => 'admin.accounts.index',
+        'create' => 'admin.accounts.create',
+        'store' => 'admin.accounts.store',
+        'show' => 'admin.accounts.show',
+        'edit' => 'admin.accounts.edit',
+        'update' => 'admin.accounts.update',
+        'destroy' => 'admin.accounts.destroy'
+    ]);
+    // export
+    Route::get('accounts/export/{type}', [AccountsController::class, 'export'])
+    ->name('admin.accounts.export');
+
+    // Invoices
+    Route::get('invoices', [PlansController::class, 'invoices'])->name('admin.invoices.index');
 
     // support ticket
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');

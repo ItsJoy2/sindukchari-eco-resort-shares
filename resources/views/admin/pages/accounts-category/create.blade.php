@@ -3,9 +3,9 @@
 @section('content')
 <div class="p-5">
     <h4>Create New Pair</h4>
-    <form method="POST" action="{{ route('admin.categories.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.accounts-category.store') }}" enctype="multipart/form-data">
         @csrf
-        @include('admin.pages.categories.form')
+        @include('admin.pages.accounts-category.form')
         <button type="submit" class="btn btn-primary">Create</button>
     </form>
 </div>

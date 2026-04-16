@@ -60,6 +60,14 @@
                         <p>All Plans</p>
                     </a>
                 </li>
+
+                <!-- Invoices -->
+                <li class="nav-item {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.invoices.index') }}">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <p>Invoices</p>
+                    </a>
+                </li>
                 <!-- Deposit -->
                 <li class="nav-item {{ Str::contains(request()->path(), 'deposit') ? 'active' : '' }}">
                     <a data-bs-toggle="collapse" href="#deposit">
@@ -103,6 +111,37 @@
                         <i class="fas fa-money-check"></i>
                         <p>Transactions</p>
                     </a>
+                </li>
+
+                <!-- Accounts -->
+                <li class="nav-item {{ Str::contains(request()->path(), 'accounts') || Str::contains(request()->path(), 'accounts-category') ? 'active' : '' }}">
+
+                    <a data-bs-toggle="collapse" href="#accountsMenu">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <p>Accounts</p>
+                        <span class="caret"></span>
+                    </a>
+
+                    <div class="collapse {{ Str::contains(request()->path(), 'accounts') || Str::contains(request()->path(), 'accounts-category') ? 'show' : '' }}"
+                        id="accountsMenu">
+
+                        <ul class="nav nav-collapse">
+
+                            <!-- Accounts List -->
+                            <li class="{{ request()->routeIs('admin.accounts.index') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts.index') }}">
+                                    <span class="sub-item">All Accounts</span>
+                                </a>
+                            </li>
+                            <!-- Categories -->
+                            <li class="{{ Str::contains(request()->path(), 'accounts-category') ? 'active' : '' }}">
+                                <a href="{{ route('admin.accounts-category.index') }}">
+                                    <span class="sub-item">Categories</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
                 </li>
 
                 <!-- Clubs -->

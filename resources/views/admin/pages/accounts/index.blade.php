@@ -1,0 +1,269 @@
+@extends('admin.layouts.app')
+
+@section('content')
+
+{{-- Success Alert --}}
+@if(session('success'))
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: '{{ session('success') }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+</script>
+@endif
+
+<div class="card">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="card-title mb-0">Accounts</h4>
+        <a href="{{ route('admin.accounts.create') }}" class="btn btn-success btn-sm">
+            + Add Accounts Items
+        </a>
+    </div>
+
+    {{-- FILTER --}}
+    <div class="card-body">
+
+        <form method="GET" class="row g-2 mb-3">
+            <div class="row mb-3">
+
+                {{-- TOTAL INCOME --}}
+                <div class="col-md-3">
+                    <div class="card text-white bg-success shadow-sm">
+                        <div class="card-body">
+                            <h6>Total Income</h6>
+                            <h4>{{ number_format($totalIncome, 2) }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- TOTAL EXPENSE --}}
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger shadow-sm">
+                        <div class="card-body">
+                            <h6>Total Expense</h6>
+                            <h4>{{ number_format($totalExpense, 2) }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- TOTAL INVOICE --}}
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary shadow-sm">
+                        <div class="card-body">
+                            <h6>Shares Income</h6>
+                            <h4>{{ number_format($totalInvoice, 2) }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ADDITIONAL INCOME --}}
+                <div class="col-md-3">
+                    <div class="card text-white bg-dark shadow-sm">
+                        <div class="card-body">
+                            <h6>Additional Income</h6>
+                            <h4>{{ number_format($additionalIncome, 2) }}</h4>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Date Range --}}
+            <div class="col-md-2">
+                <input type="text" name="date_range" class="form-control date-range" placeholder="Select Date Range" value="{{ request('date_range') }}">
+            </div>
+
+            {{-- Type + Category --}}
+            <div class="col-md-2">
+                <select name="filter" class="form-control">
+
+                    <option value="">All</option>
+
+                    {{-- TYPE --}}
+                    <option value="income" {{ request('filter') == 'income' ? 'selected' : '' }}>Income</option>
+                    <option value="expense" {{ request('filter') == 'expense' ? 'selected' : '' }}>Expense</option>
+
+                    {{-- STATIC AUTO --}}
+                    <option value="cat_Purchase" {{ request('filter') == 'cat_Purchase' ? 'selected' : '' }}>Purchase</option>
+                    <option value="cat_Invoice" {{ request('filter') == 'cat_Invoice' ? 'selected' : '' }}>Share Invoice</option>
+
+                    {{-- MANUAL CATEGORIES --}}
+                    @foreach($categories ?? [] as $cat)
+                        <option value="cat_{{ $cat->name }}"
+                            {{ request('filter') == 'cat_'.$cat->name ? 'selected' : '' }}>
+                            {{ $cat->name }}
+                        </option>
+                    @endforeach
+
+                </select>
+            </div>
+
+            {{-- Search --}}
+            <div class="col-md-3">
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search anything...">
+            </div>
+
+            {{-- Buttons --}}
+            <div class="col-md-1 d-flex gap-1">
+                <button class="btn btn-primary "><i class="fas fa-filter"></i></button>
+                <a href="{{ route('admin.accounts.index') }}" class="btn btn-secondary"><i class="fas fa-undo"></i></a>
+            </div>
+            <div class="col-md-2">
+                 <div class="dropdown">
+                    <button class="btn btn-success btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-file-export"></i> Export
+                    </button>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'pdf'] + request()->query()) }}">
+                                <i class="fas fa-file-pdf text-danger"></i> PDF
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'excel'] + request()->query()) }}">
+                                <i class="fas fa-file-excel text-success"></i> Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'csv'] + request()->query()) }}">
+                                <i class="fas fa-file-alt text-primary"></i> CSV
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </form>
+
+        {{-- TABLE --}}
+        <div class="table-responsive">
+
+            <table class="table table-striped table-hover">
+
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Note</th>
+                        <th width="150">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @forelse($accountsData as $account)
+
+                        <tr>
+
+                            <td>{{ $account['date'] }}</td>
+                            <td>{{ $account['title'] }}</td>
+
+                            <td>
+                                <span class="badge bg-{{ $account['type'] == 'income' ? 'success' : 'danger' }}">
+                                    {{ ucfirst($account['type']) }}
+                                </span>
+                            </td>
+
+                            <td>{{ $account['category'] }}</td>
+
+                            <td>
+                                <strong>{{ number_format($account['amount'], 2) }}</strong>
+                            </td>
+
+                            <td>{{ $account['note'] ?? '-' }}</td>
+
+                            <td>
+
+                                {{-- ONLY MANUAL DATA --}}
+                                @if(isset($account['id']) && $account['is_manual'] ?? false)
+
+                                    <div class="d-flex gap-1">
+
+                                        <a href="{{ route('admin.accounts.edit', $account['id']) }}"
+                                           class="btn btn-sm btn-info">
+                                            Edit
+                                        </a>
+
+                                        <form action="{{ route('admin.accounts.destroy', $account['id']) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('Are you sure?')">
+
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button class="btn btn-sm btn-danger">
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                @else
+                                    <span class="text-muted">Auto</span>
+                                @endif
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">No accounts found</td>
+                        </tr>
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {{-- PAGINATION --}}
+        <div class="mt-3">
+            {{ $accountsData->appends(request()->query())->links('admin.layouts.partials.__pagination') }}
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+function getMonths() {
+    return window.innerWidth < 768 ? 1 : 2;
+}
+
+let fp = flatpickr(".date-range", {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    showMonths: getMonths(),
+    onReady: function(selectedDates, dateStr, instance) {
+        window.addEventListener("resize", function () {
+            instance.set("showMonths", getMonths());
+        });
+    }
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    .flatpickr-calendar {
+        width: 100% !important;
+    }
+
+    .flatpickr-rContainer {
+        width: 100% !important;
+    }
+}
+</style>
+@endsection
+
+

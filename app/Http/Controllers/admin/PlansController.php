@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Models\Package;
+use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Investor;
+use App\Models\Invoice;
+use App\Models\Package;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 
 class PlansController extends Controller
@@ -163,4 +164,32 @@ class PlansController extends Controller
             return view('admin.pages.investment.index', compact('investors'));
     }
 
+    public function invoices(Request $request)
+    {
+        $query = Invoice::with(['user','investor.package']);
+
+        //Search filter
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('invoice_no', 'like', "%{$search}%")
+                ->orWhereHas('user', function ($u) use ($search) {
+                    $u->where('email', 'like', "%{$search}%");
+                });
+
+            });
+        }
+
+        // STATUS FILTER
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->latest()->paginate(15);
+
+        return view('admin.pages.investment.invoices', compact('invoices'));
+    }
 }
