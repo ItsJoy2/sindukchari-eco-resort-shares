@@ -40,9 +40,9 @@ class AdminDashboardController extends Controller
             $totalExpense = Account::where('type', 'expense')->sum('amount');
             $sharesIncome = Invoice::where('status', 'paid')->sum('amount');
             $withdrawCharge = Withdrawal::where('status', 'approved')->sum('charge');
-            $withdrawExpense =Withdrawal::where('status', 'approved')->sum('total_amount');
+            $totalWithdrawals = Withdrawal::where('status', 'approved')->sum('total_amount');
             $totalIncome = $manualIncome + $sharesIncome + $withdrawCharge;
-            $netExpense = $totalExpense + $withdrawExpense;
+            $netExpense = $totalExpense + $totalWithdrawals;
             $netProfit = $totalIncome - $netExpense;
 
 
@@ -70,7 +70,7 @@ class AdminDashboardController extends Controller
 
 
                 // withdrawal
-                'totalWithdrawals' => Withdrawal::where('status', 'approved')->sum('total_amount'),
+                'totalWithdrawals' => $totalWithdrawals,
                 'pendingWithdrawals' => Withdrawal::where('status', 'pending')->sum('total_amount'),
                 'todayWithdrawals' => Withdrawal::where('status', 'approved')->whereDate('created_at', Carbon::today())->sum('total_amount'),
                 'withdrawChargeAmount' => $withdrawCharge,
@@ -89,7 +89,7 @@ class AdminDashboardController extends Controller
                 // Accounts Summary
                 'totalIncome'   => $totalIncome,
                 'sharesIncome'  => $sharesIncome,
-                'totalExpense'  => $totalExpense,
+                'totalExpense'  => $netExpense,
                 'netProfit'     => $netProfit,
 
             ];

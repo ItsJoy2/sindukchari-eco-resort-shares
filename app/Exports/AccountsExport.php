@@ -25,7 +25,7 @@ class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
         // ===== TITLE & FILTER INFO =====
         $rows->push(['Accounts Report']);
         $rows->push(['Date Range: ' . ($this->request->date_range ?? 'All')]);
-        $rows->push(['Filter: ' . ($this->request->filter ?? 'All')]);
+        $rows->push(['Filter: ' . $this->formatFilterName($this->request->filter ?? null)]);
         $rows->push(['Search: ' . ($this->request->search ?? '-')]);
         $rows->push([]);
 
@@ -95,5 +95,20 @@ class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
                     ->setBorderStyle('medium');
             }
         ];
+    }
+    private function formatFilterName($filter)
+    {
+        if (!$filter) return 'All';
+
+        if (in_array($filter, ['income', 'expense'])) {
+            return ucfirst($filter);
+        }
+
+        if (str_starts_with($filter, 'cat_')) {
+            $cat = str_replace('cat_', '', $filter);
+            return ucwords(str_replace('_', ' ', $cat));
+        }
+
+        return ucfirst($filter);
     }
 }

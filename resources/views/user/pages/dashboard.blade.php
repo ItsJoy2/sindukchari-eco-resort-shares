@@ -404,81 +404,83 @@
             </div>
             </div>
 
-             <div class="col-md-8 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex flex-row justify-content-between">
-                                <h4 class="card-title mb-1">Transaction History</h4>
-                                <p class="text-white mb-1">Recent Transactions</p>
-                            </div>
+                <div class="col-md-8 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex flex-row justify-content-between">
+                                    <h4 class="card-title mb-1">Transaction History</h4>
+                                    <p class="text-white mb-1">Recent Transactions</p>
+                                </div>
 
-                            <div class="preview-list">
+                                <div class="preview-list">
 
-                                @php
-                                $icons = [
-                                    'deposit'            => ['icon' => 'mdi mdi-bank', 'color' => 'bg-success'],
-                                    'withdrawal'         => ['icon' => 'mdi mdi-arrow-down-bold-circle', 'color' => 'bg-danger'],
-                                    'transfer'           => ['icon' => 'mdi mdi-swap-horizontal', 'color' => 'bg-info'],
-                                    'convert'            => ['icon' => 'mdi mdi-cached', 'color' => 'bg-primary'],
-                                    'level_bonus'        => ['icon' => 'mdi mdi-sitemap', 'color' => 'bg-warning'],
-                                    'director_bonus'     => ['icon' => 'mdi mdi-account-tie', 'color' => 'bg-warning'],
-                                    'shareholder_bonus'  => ['icon' => 'mdi mdi-account-group', 'color' => 'bg-warning'],
-                                    'club_bonus'         => ['icon' => 'mdi mdi-star-circle', 'color' => 'bg-warning'],
-                                    'rank_bonus'         => ['icon' => 'mdi mdi-trophy-outline', 'color' => 'bg-warning'],
-                                ];
-
-                                $labels = [
-                                    'deposit'            => 'Deposit',
-                                    'withdrawal'         => 'Withdrawal',
-                                    'transfer'           => 'Transfer',
-                                    'convert'            => 'Balance Convert',
-                                    'level_bonus'        => 'Level Bonus',
-                                    'director_bonus'     => 'Director Bonus',
-                                    'shareholder_bonus'  => 'Shareholder Bonus',
-                                    'club_bonus'         => 'Club Bonus',
-                                    'rank_bonus'         => 'Rank Bonus',
-                                ];
-                                @endphp
-
-                                @forelse($dashboard['transactions'] as $transaction)
                                     @php
-                                        $icon  = $icons[$transaction->remark]['icon'] ?? 'mdi mdi-file-document';
-                                        $color = $icons[$transaction->remark]['color'] ?? 'bg-secondary';
-                                        $label = $labels[$transaction->remark] ?? ucfirst($transaction->remark);
+                                    $icons = [
+                                        'deposit'            => ['icon' => 'mdi mdi-bank', 'color' => 'bg-success'],
+                                        'withdrawal'         => ['icon' => 'mdi mdi-arrow-down-bold-circle', 'color' => 'bg-danger'],
+                                        'transfer'           => ['icon' => 'mdi mdi-swap-horizontal', 'color' => 'bg-info'],
+                                        'convert'            => ['icon' => 'mdi mdi-cached', 'color' => 'bg-primary'],
+                                        'level_bonus'        => ['icon' => 'mdi mdi-sitemap', 'color' => 'bg-warning'],
+                                        'director_bonus'     => ['icon' => 'mdi mdi-account-tie', 'color' => 'bg-warning'],
+                                        'shareholder_bonus'  => ['icon' => 'mdi mdi-account-group', 'color' => 'bg-warning'],
+                                        'club_bonus'         => ['icon' => 'mdi mdi-star-circle', 'color' => 'bg-warning'],
+                                        'rank_bonus'         => ['icon' => 'mdi mdi-trophy-outline', 'color' => 'bg-warning'],
+                                        'invoice_payment' => ['icon' => 'mdi mdi-receipt', 'color' => 'bg-success'],
+                                    ];
+
+                                    $labels = [
+                                        'deposit'            => 'Deposit',
+                                        'withdrawal'         => 'Withdrawal',
+                                        'transfer'           => 'Transfer',
+                                        'convert'            => 'Balance Convert',
+                                        'level_bonus'        => 'Level Bonus',
+                                        'director_bonus'     => 'Director Bonus',
+                                        'shareholder_bonus'  => 'Shareholder Bonus',
+                                        'club_bonus'         => 'Club Bonus',
+                                        'rank_bonus'         => 'Rank Bonus',
+                                        'invoice_payment' => 'Invoice Payment',
+                                    ];
                                     @endphp
 
-                                    <div class="preview-item border-bottom">
-                                        <div class="preview-thumbnail">
-                                            <div class="preview-icon {{ $color }}">
-                                                <i class="{{ $icon }}"></i>
+                                    @forelse($dashboard['transactions'] as $transaction)
+                                        @php
+                                            $icon  = $icons[$transaction->remark]['icon'] ?? 'mdi mdi-file-document';
+                                            $color = $icons[$transaction->remark]['color'] ?? 'bg-secondary';
+                                            $label = $labels[$transaction->remark] ?? ucfirst($transaction->remark);
+                                        @endphp
+
+                                        <div class="preview-item border-bottom">
+                                            <div class="preview-thumbnail">
+                                                <div class="preview-icon {{ $color }}">
+                                                    <i class="{{ $icon }}"></i>
+                                                </div>
+                                            </div>
+
+                                            <div class="preview-item-content d-sm-flex flex-grow">
+                                                <div class="flex-grow">
+                                                    <h6 class="preview-subject">{{ $label }}</h6>
+                                                    <p class="text-muted mb-0">
+                                                        {{ $transaction->created_at->format('d M Y') }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="text-sm-right pt-2 pt-sm-0">
+                                                    <p class="text-muted mb-1">
+                                                        Amount: ৳{{ number_format($transaction->amount, 2) }}
+                                                    </p>
+                                                    <p class="text-muted mb-0">
+                                                        {{ $transaction->details ?? '-' }}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
+                                    @empty
+                                        <p class="text-muted">No transactions found.</p>
+                                    @endforelse
 
-                                        <div class="preview-item-content d-sm-flex flex-grow">
-                                            <div class="flex-grow">
-                                                <h6 class="preview-subject">{{ $label }}</h6>
-                                                <p class="text-muted mb-0">
-                                                    {{ $transaction->created_at->format('d M Y') }}
-                                                </p>
-                                            </div>
-
-                                            <div class="text-sm-right pt-2 pt-sm-0">
-                                                <p class="text-muted mb-1">
-                                                    Amount: ৳{{ number_format($transaction->amount, 2) }}
-                                                </p>
-                                                <p class="text-muted mb-0">
-                                                    {{ $transaction->details ?? '-' }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <p class="text-muted">No transactions found.</p>
-                                @endforelse
-
+                                </div>
                             </div>
                         </div>
-                    </div>
                 </div>
 
 

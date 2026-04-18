@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Mpdf\Mpdf;
 
@@ -49,6 +50,7 @@ class AccountsController extends Controller
                     'category_id' => $item->category_id,
                     'note' => $item->note,
                     'is_manual' => true,
+                    'created_at' => $item->date,
                 ];
             });
 
@@ -72,45 +74,56 @@ class AccountsController extends Controller
                         . ($item->user->email ?? 'N/A'),
                     'is_manual' => false,
                     'is_invoice' => true,
+                    'created_at' => $item->created_at,
                 ];
             });
 
-            // WITHDRAWALS
-            $withdrawals = Withdrawal::with('user')
-                ->where('status', 'approved')
-                ->when($from, fn($q) => $q->whereDate('created_at', '>=', $from))
-                ->when($to, fn($q) => $q->whereDate('created_at', '<=', $to))
-                ->get()
-                ->flatMap(function ($item) {
+        // WITHDRAWALS
+        $withdrawals = Withdrawal::with('user')
+            ->where('status', 'approved')
+            ->when($from, fn($q) => $q->whereDate('created_at', '>=', $from))
+            ->when($to, fn($q) => $q->whereDate('created_at', '<=', $to))
+            ->get()
+            ->flatMap(function ($item) {
 
-                    $accountNo = $item->details['account_number'] ?? 'N/A';
-                    $trx = $item->details['trx'] ?? ($item->details['transaction_id'] ?? 'N/A');
+                $details = $item->details ?? [];
 
-                    $note = 'Withdraw by '
-                        . ($item->user->email ?? 'N/A')
-                        . ' | Acc: ' . $accountNo
-                        . ' | Trx: ' . $trx;
+                $detailsText = collect($details)
+                    ->filter(fn($v) => !empty($v))
+                    ->map(function ($value, $key) {
+                        return ucfirst(str_replace('_', ' ', $key)) . ': ' . $value;
+                    })
+                    ->implode(' | ');
 
-                    return [
-                        [
-                            'date' => $item->created_at->format('Y-m-d'),
-                            'type' => 'expense',
-                            'amount' => $item->total_amount,
-                            'category' => 'Withdraw',
-                            'note' => $note,
-                            'is_manual' => false,
-                        ],
+                $note = 'Withdraw by '
+                    . ($item->user->email ?? 'N/A'). ' via ' . ucfirst($item->method)
+                    . ($detailsText ? ' | ' . $detailsText : '');
 
-                        [
-                            'date' => $item->created_at->format('Y-m-d'),
-                            'type' => 'income',
-                            'amount' => $item->charge,
-                            'category' => 'Withdraw Charge',
-                            'note' => $note,
-                            'is_manual' => false,
-                        ]
-                    ];
-                });
+                return [
+
+                    [
+                        'id' => $item->id,
+                        'date' => $item->created_at->format('Y-m-d'),
+                        'type' => 'expense',
+                        'amount' => $item->total_amount,
+                        'category' => 'Withdraw',
+                        'note' => $note,
+                        'is_manual' => false,
+                        'created_at' => $item->created_at,
+                    ],
+
+                    [
+                        'id' => $item->id . '_charge',
+                        'date' => $item->created_at->format('Y-m-d'),
+                        'type' => 'income',
+                        'amount' => $item->charge,
+                        'category' => 'Withdraw Charge',
+                        'note' => $note,
+                        'is_manual' => false,
+                        'created_at' => $item->created_at,
+                    ]
+                ];
+            });
 
         //  MERGE
         $all = collect()
@@ -146,7 +159,8 @@ class AccountsController extends Controller
         });
 
         //  SORT
-        $all = $all->sortByDesc('date')->values();
+        // $all = $all->sortByDesc('date')->values();
+        $all = $all->sortByDesc(function ($item) {return Carbon::parse($item['created_at'] ?? $item['date'])->timestamp;})->values();
 
         //  PAGINATION
         $perPage = 15;
@@ -307,7 +321,7 @@ class AccountsController extends Controller
                 // ===== TOP INFO =====
                 fputcsv($file, ['Accounts Report']);
                 fputcsv($file, ['Date Range:', $request->date_range ?? 'All']);
-                fputcsv($file, ['Filter:', $request->filter ?? 'All']);
+                fputcsv($file, ['Filter:', $this->formatFilterName($request->filter)]);
                 fputcsv($file, ['Search:', $request->search ?? '-']);
                 fputcsv($file, []);
 
@@ -336,7 +350,7 @@ class AccountsController extends Controller
             $now = now()->format('Y-m-d_H-i');
 
             return Excel::download(
-                new AccountsExport($data),
+                new AccountsExport($data, $request),
                 "accounts_{$now}.xlsx"
             );
         }
@@ -350,7 +364,7 @@ class AccountsController extends Controller
             $html = view('admin.pages.accounts.pdf', [
                 'accounts' => $data,
                 'date_range' => $request->date_range,
-                'filter' => $request->filter,
+                'filter' => $this->formatFilterName($request->filter),
                 'search' => $request->search,
                 'app_name' => $setting->app_name ?? 'Edulife',
             ])->render();
@@ -413,8 +427,49 @@ class AccountsController extends Controller
                 ];
             });
 
+        // WITHDRAWALS
+        $withdrawals = Withdrawal::with('user')
+            ->when($from, fn($q) => $q->whereDate('created_at', '>=', $from))
+            ->when($to, fn($q) => $q->whereDate('created_at', '<=', $to))
+            ->get()
+            ->flatMap(function ($item) {
+
+                $details = $item->details ?? [];
+
+                $detailsText = collect($details)
+                    ->filter(fn($v) => !empty($v))
+                    ->map(function ($value, $key) {
+                        return ucfirst(str_replace('_', ' ', $key)) . ': ' . $value;
+                    })
+                    ->implode(' | ');
+
+                $note = 'Withdraw by '
+                    . ($item->user->email ?? 'N/A')
+                    . ($detailsText ? ' | ' . $detailsText : '');
+
+                return [
+                    [
+                        'date' => $item->created_at->format('Y-m-d'),
+                        'type' => 'expense',
+                        'amount' => $item->total_amount,
+                        'category' => 'Withdraw',
+                        'note' => $note,
+                    ],
+                    [
+                        'date' => $item->created_at->format('Y-m-d'),
+                        'type' => 'income',
+                        'amount' => $item->charge,
+                        'category' => 'Withdraw Charge',
+                        'note' => $note,
+                    ]
+                ];
+            });
+
         // MERGE
-        $all = collect()->merge($accounts)->merge($invoices);
+        $all = collect()
+            ->merge($accounts)
+            ->merge($invoices)
+            ->merge($withdrawals);
 
         // FILTER
         if ($filter) {
@@ -424,21 +479,41 @@ class AccountsController extends Controller
             }
 
             if (str_starts_with($filter, 'cat_')) {
+
                 $cat = str_replace('cat_', '', $filter);
-                $all = $all->where('category', $cat);
+
+                $catName = ucwords(str_replace('_', ' ', $cat));
+
+                $all = $all->where('category', $catName);
             }
         }
 
         // SEARCH
         if ($search) {
             $all = $all->filter(function ($item) use ($search) {
-                return str_contains(strtolower($item['title']), strtolower($search)) ||
-                    str_contains(strtolower($item['note']), strtolower($search)) ||
+                return str_contains(strtolower($item['note']), strtolower($search)) ||
                     str_contains(strtolower($item['category']), strtolower($search)) ||
                     str_contains((string)$item['amount'], $search);
             });
         }
 
         return $all->sortByDesc('date')->values();
+    }
+
+    // Format filter name for display
+    private function formatFilterName($filter)
+    {
+        if (!$filter) return 'All';
+
+        if (in_array($filter, ['income', 'expense'])) {
+            return ucfirst($filter);
+        }
+
+        if (str_starts_with($filter, 'cat_')) {
+            $cat = str_replace('cat_', '', $filter);
+            return ucwords(str_replace('_', ' ', $cat));
+        }
+
+        return ucfirst($filter);
     }
 }

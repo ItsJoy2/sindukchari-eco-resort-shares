@@ -121,17 +121,17 @@
 
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'pdf'] + request()->query()) }}">
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'pdf'] + request()->query()) }}" target="_blank">
                                 <i class="fas fa-file-pdf text-danger"></i> PDF
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'excel'] + request()->query()) }}">
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'excel'] + request()->query()) }}" target="_blank">
                                 <i class="fas fa-file-excel text-success"></i> Excel
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'csv'] + request()->query()) }}">
+                            <a class="dropdown-item" href="{{ route('admin.accounts.export', ['type'=>'csv'] + request()->query()) }}" target="_blank">
                                 <i class="fas fa-file-alt text-primary"></i> CSV
                             </a>
                         </li>

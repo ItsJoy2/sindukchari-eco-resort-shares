@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\user;
 
 
-use Carbon\Carbon;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use App\Models\Deposit;
 use App\Models\Investor;
+use App\Models\Invoice;
 use App\Models\Transactions;
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Models\Withdrawal;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 class DashboardController extends Controller
@@ -20,7 +22,7 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         $totalDeposit = Deposit::where('user_id', $user->id)->where('status', 'approved')->sum('amount');
-        $totalWithdraw = Transactions::where('user_id', $user->id)->where('remark', 'withdrawal')->sum('amount');
+        $totalWithdraw = Withdrawal::where('user_id', $user->id)->sum('amount');
         $totalTransfer = Transactions::where('user_id', $user->id)->where('remark', 'transfer')->sum('amount');
         $bonusBalance = $user->bonus_wallet;
 
@@ -70,9 +72,45 @@ class DashboardController extends Controller
                         return $item;
                     });
 
+                // Invoice Payments (Paid)
+                $invoices = Invoice::with('investor.package')->where('user_id', $user->id)->where('status', 'paid')->select('id', 'invoice_no', 'investor_id', 'amount', 'created_at')->get()->map(function ($item) {
+
+                    $item->remark  = 'invoice_payment';
+                    $item->details = 'Invoice #' . $item->invoice_no . ' paid for share ' .($item->investor->package->share_name);
+                    $item->source  = 'invoice';
+
+                    return $item;
+                });
+
+                // Withdrawal
+
+                $withdrawal = Withdrawal::where('user_id', $user->id)->select('id','method', 'details', 'amount', 'created_at', 'note')->get()->map(function ($item) {
+
+                        $details = $item->details ?? [];
+
+                        if (is_string($details)) {
+                            $details = json_decode($details, true) ?? [];
+                        }
+
+                        $formattedDetails = collect($details)
+                            ->filter(fn($v) => !empty($v))
+                            ->map(function ($value, $key) {
+                                return ucfirst(str_replace('_', ' ', $key)) . ': ' . $value;
+                            })
+                            ->implode(' | ');
+
+                        $item->remark  = 'withdrawal';
+                        $item->details = 'Withdraw via ' . ucfirst(strtolower($item->method ?? 'Unknown Method')) . ' | ' . ($formattedDetails ?: 'No details');
+                        $item->source  = 'withdrawal';
+
+                        return $item;
+                    });
+
             // Merge + sort + limit
             $allTransactions = $transactions
                 ->merge($deposits)
+                ->merge($invoices)
+                ->merge($withdrawal)
                 ->sortByDesc('created_at')
                 ->take(6)
                 ->values();
@@ -115,7 +153,7 @@ class DashboardController extends Controller
             // $maturedInvestmentChangeFormatted = ($maturedInvestmentChange >= 0 ? '+' : '') . number_format($maturedInvestmentChange, 2) . '%';
 
 
-            $lastWithdraw = Transactions::where('user_id', $user->id)->where('remark', 'withdrawal') ->orderBy('created_at', 'desc') ->first();
+            $lastWithdraw = Withdrawal::where('user_id', $user->id)->orderBy('created_at', 'desc') ->first();
             $lastTransfer = Transactions::where('user_id', $user->id) ->where('remark', 'transfer')->orderBy('created_at', 'desc')->first();
             $lastDeposit = Deposit::where('user_id', $user->id)->where('status', 'approved')->orderBy('created_at', 'desc')->first();
 
@@ -125,7 +163,7 @@ class DashboardController extends Controller
 
             $transfersData = Transactions::where('user_id', $user->id)->where('remark', 'transfer')->where('created_at', '>=', $startDate)->selectRaw('DATE(created_at) as date, SUM(amount) as total')->groupBy('date')->orderBy('date')->get();
 
-            $withdrawsData = Transactions::where('user_id', $user->id)->where('remark', 'withdrawal')->where('created_at', '>=', $startDate)->selectRaw('DATE(created_at) as date, SUM(amount) as total')->groupBy('date')->orderBy('date')->get();
+            $withdrawsData = Withdrawal::where('user_id', $user->id)->where('created_at', '>=', $startDate)->selectRaw('DATE(created_at) as date, SUM(amount) as total')->groupBy('date')->orderBy('date')->get();
 
             // $totalExpectedReturn = Investor::where('user_id', $user->id)->where('status', 'running')->sum('expected_return');
 
