@@ -18,7 +18,7 @@
 <div class="card">
 
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="card-title mb-0">Accounts</h4>
+        <h4 class="card-title mb-0">Expense/Income Management</h4>
         <a href="javascript:void(0)" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createModal">Add Accounts Items</a>
         @include('admin.pages.accounts.modal.create')
     </div>
