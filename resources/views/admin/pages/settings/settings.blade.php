@@ -36,7 +36,12 @@
                     <div class="tab-pane fade show active" id="v-pills-shareholder" role="tabpanel">
                         <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">Shareholder Settings</h5>
+                                <h5 class="card-title">Shareholder Settings
+                                    <i class="fas fa-info-circle text-muted ms-1"
+                                       data-bs-toggle="tooltip"
+                                       title="Users become shareholders when their total purchased shares reach this minimum Shares limit.">
+                                    </i>
+                                </h5>
                                 <div class="mb-3">
                                     <label>Minimum Shares</label>
                                     <input type="number" step="0.01" name="shareholder_min_shares" value="{{ $settings['shareholder_min_shares'] ?? '' }}" class="form-control">
@@ -49,7 +54,12 @@
                     <div class="tab-pane fade" id="v-pills-club" role="tabpanel">
                         <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">Club Settings</h5>
+                                <h5 class="card-title">Club Settings
+                                    <i class="fas fa-info-circle text-muted ms-1"
+                                    data-bs-toggle="tooltip"
+                                    title="Users are assigned to clubs based on their total purchased shares. Higher shares unlock higher club levels.">
+                                    </i>
+                                </h5>
                                 @for($i=1; $i<=3; $i++)
                                     <div class="mb-3">
                                         <label>Club {{ $i }} Minimum Shares</label>
@@ -64,7 +74,12 @@
                     <div class="tab-pane fade" id="v-pills-rank" role="tabpanel">
                         <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">Rank Settings</h5>
+                                <h5 class="card-title">Rank Settings
+                                    <i class="fas fa-info-circle text-muted ms-1"
+                                    data-bs-toggle="tooltip"
+                                    title="Rank is assigned based on total shares and number of active direct referrals.">
+                                    </i>
+                                </h5>
 
                                 @for($i=1; $i<=3; $i++)
                                     <div class="mb-3"><strong>Rank {{ $i }}</strong></div>
@@ -76,7 +91,7 @@
                                                 class="form-control">
                                         </div>
                                         <div class="col-md-6">
-                                            <label>Minimum Active Referrals</label>
+                                            <label>Minimum Active Referrals </label>
                                             <input type="number" step="1" name="rank{{ $i }}_min_active_referrals"
                                                 value="{{ $settings['rank'.$i.'_min_active_referrals'] ?? '' }}"
                                                 class="form-control">

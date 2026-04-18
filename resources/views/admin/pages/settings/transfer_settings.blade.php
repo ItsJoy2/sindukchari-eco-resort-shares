@@ -1,7 +1,7 @@
 @extends('admin.layouts.app')
 
 @section('content')
-<div class="container w-50 bg-warning p-4 rounded">
+<div class="container w-50 bg-white p-4 mt-4 rounded">
     <h2>Transfer Settings</h2>
 
     {{-- Success Message --}}
