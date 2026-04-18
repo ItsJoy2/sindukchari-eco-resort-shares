@@ -33,13 +33,14 @@
             <thead class="thead-dark">
                 <tr>
                     <th>#</th>
+                    <th>Date</th>
                     <th>Invoice No</th>
                     <th>User</th>
                     <th>Share Name</th>
                     <th>Amount</th>
                     <th>Discount</th>
                     <th>Status</th>
-                    <th>Date</th>
+                    <th>Action</th>
                 </tr>
             </thead>
 
@@ -49,6 +50,10 @@
 
                     <tr>
                         <td>{{ $invoices->firstItem() + $index }}</td>
+
+                        <td>
+                            {{ $invoice->created_at->format('Y-m-d') }}
+                        </td>
 
                         <td>{{ $invoice->invoice_no }}</td>
 
@@ -71,9 +76,12 @@
                                 {{ ucfirst($invoice->status) }}
                             </span>
                         </td>
-
                         <td>
-                            {{ $invoice->created_at->format('Y-m-d') }}
+                            <a href="{{ route('admin.print.invoice', $invoice->id) }} " target="_blank"
+                            class="btn btn-md text-primary"
+                            title="View & Print">
+                                <i class="fas fa-print"></i>
+                            </a>
                         </td>
                     </tr>
 

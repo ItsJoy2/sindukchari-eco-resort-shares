@@ -4,11 +4,15 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\GeneralSetting;
 use App\Models\Investor;
 use App\Models\Invoice;
 use App\Models\Package;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
+use Mpdf\Mpdf;
 
 class PlansController extends Controller
 {
@@ -191,5 +195,41 @@ class PlansController extends Controller
         $invoices = $query->latest()->paginate(15);
 
         return view('admin.pages.investment.invoices', compact('invoices'));
+    }
+
+    public function printInvoice($id)
+    {
+        $invoice = Invoice::with(['user','investor.package'])->findOrFail($id);
+        $settings = GeneralSetting::first();
+
+        $html = view('admin.pages.investment.invoice-print', compact('invoice', 'settings'))->render();
+
+        $defaultConfig = (new ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $fontConfig = (new FontVariables())->getDefaults();
+        $fontData = $fontConfig['fontdata'];
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+
+            'fontDir' => array_merge($fontDirs, [
+                public_path('assets/admin/fonts/SolaimanLipi'),
+            ]),
+
+            'fontdata' => $fontData + [
+                'solaimanlipi' => [
+                    'R' => 'SolaimanLipi.ttf',
+                    'useOTL' => 0xFF,
+                    'useKashida' => 75,
+                ]
+            ],
+
+            'default_font' => 'solaimanlipi',
+        ]);
+
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('invoice-'.$invoice->invoice_no.'.pdf', 'I');
     }
 }

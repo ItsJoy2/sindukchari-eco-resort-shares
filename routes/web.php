@@ -49,6 +49,10 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     // all investor
     Route::get('investors', [PlansController::class, 'allInvestment'])->name('admin.investment');
 
+    // Invoices
+    Route::get('invoices', [PlansController::class, 'invoices'])->name('admin.invoices.index');
+    Route::get('invoices/print/{id}', [PlansController::class, 'printInvoice'])->name('admin.print.invoice');
+
     // withdraw
     Route::resource('withdraw', WithdrawController::class)->names([
         'index' => 'admin.withdraw.index',
@@ -135,8 +139,6 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('accounts/export/{type}', [AccountsController::class, 'export'])
     ->name('admin.accounts.export');
 
-    // Invoices
-    Route::get('invoices', [PlansController::class, 'invoices'])->name('admin.invoices.index');
 
     // support ticket
     Route::get('/tickets', [AdminTicketController::class, 'index'])->name('admin.tickets.index');

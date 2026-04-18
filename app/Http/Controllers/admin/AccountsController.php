@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\AccountCategory;
 use App\Models\GeneralSetting;
 use App\Models\Invoice;
+use App\Models\Withdrawal;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -59,6 +60,8 @@ class AccountsController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
+                    'id' => $item->id,
+                    'invoice_id' => $item->id,
                     'date' => $item->created_at->format('Y-m-d'),
                     'type' => 'income',
                     'amount' => $item->amount,
@@ -68,13 +71,52 @@ class AccountsController extends Controller
                         . ' by '
                         . ($item->user->email ?? 'N/A'),
                     'is_manual' => false,
+                    'is_invoice' => true,
                 ];
             });
+
+            // WITHDRAWALS
+            $withdrawals = Withdrawal::with('user')
+                ->where('status', 'approved')
+                ->when($from, fn($q) => $q->whereDate('created_at', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('created_at', '<=', $to))
+                ->get()
+                ->flatMap(function ($item) {
+
+                    $accountNo = $item->details['account_number'] ?? 'N/A';
+                    $trx = $item->details['trx'] ?? ($item->details['transaction_id'] ?? 'N/A');
+
+                    $note = 'Withdraw by '
+                        . ($item->user->email ?? 'N/A')
+                        . ' | Acc: ' . $accountNo
+                        . ' | Trx: ' . $trx;
+
+                    return [
+                        [
+                            'date' => $item->created_at->format('Y-m-d'),
+                            'type' => 'expense',
+                            'amount' => $item->total_amount,
+                            'category' => 'Withdraw',
+                            'note' => $note,
+                            'is_manual' => false,
+                        ],
+
+                        [
+                            'date' => $item->created_at->format('Y-m-d'),
+                            'type' => 'income',
+                            'amount' => $item->charge,
+                            'category' => 'Withdraw Charge',
+                            'note' => $note,
+                            'is_manual' => false,
+                        ]
+                    ];
+                });
 
         //  MERGE
         $all = collect()
             ->merge($accounts)
-            ->merge($invoices);
+            ->merge($invoices)
+            ->merge($withdrawals);
 
         //  FILTER
         $all = $all->when($filter, function ($collection) use ($filter) {
@@ -132,18 +174,21 @@ class AccountsController extends Controller
 
         // invoice only
         $totalInvoice = $all
-            ->where('category', 'Invoice')
+            ->where('category', 'Invoice Payment')
             ->sum('amount');
 
         // additional income
-        $additionalIncome = $all
-            ->where('type', 'income')
-            ->where('category', '!=', 'Invoice')
-            ->sum('amount');
+        // $additionalIncome = $all
+        //     ->where('type', 'income')
+        //     ->where('category', '!=', 'Invoice Payment')
+        //     ->sum('amount');
+
+        // net profit
+        $netProfit = $totalIncome - $totalExpense;
 
         $categories = AccountCategory::where('status', 1)->get();
 
-        return view('admin.pages.accounts.index', compact('accountsData', 'totalIncome', 'totalExpense', 'totalInvoice', 'additionalIncome', 'categories'));
+        return view('admin.pages.accounts.index', compact('accountsData', 'totalIncome', 'totalExpense', 'totalInvoice', 'netProfit', 'categories'));
     }
 
     /**

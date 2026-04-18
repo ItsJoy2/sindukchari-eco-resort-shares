@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\admin;
 
-use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Models\Account;
 use App\Models\Deposit;
 use App\Models\Founder;
-use App\Models\Invoice;
 use App\Models\Investor;
-use Illuminate\View\View;
+use App\Models\Invoice;
 use App\Models\PoolWallet;
-use App\Models\Withdrawal;
 use App\Models\Transactions;
-use Illuminate\Support\Carbon;
-use App\Models\WithdrawSetting;
+use App\Models\User;
 use App\Models\withdraw_settings;
-use App\Http\Controllers\Controller;
+use App\Models\Withdrawal;
+use App\Models\WithdrawSetting;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
 {
@@ -29,9 +30,22 @@ class AdminDashboardController extends Controller
             $installmentShares = Investor::where('purchase_type', 'installment')->sum('quantity');
 
             $withdrawSettings = WithdrawSetting::first();
-            $chargePercent = $withdrawSettings ? $withdrawSettings->charge : 0;
-            $totalNetWithdrawals = Transactions::where('remark', 'withdrawal')->where('status', 'Completed')->sum('amount');
-            $withdrawChargeAmount = $chargePercent > 0 ? $totalNetWithdrawals * $chargePercent / (100 - $chargePercent) : 0;
+            // $chargePercent = $withdrawSettings ? $withdrawSettings->charge : 0;
+            // $totalNetWithdrawals = Transactions::where('remark', 'withdrawal')->where('status', 'Completed')->sum('amount');
+            // $withdrawChargeAmount = $chargePercent > 0 ? $totalNetWithdrawals * $chargePercent / (100 - $chargePercent) : 0;
+
+            // ===== ACCOUNTS CALCULATION =====
+
+            $manualIncome = Account::where('type', 'income')->sum('amount');
+            $totalExpense = Account::where('type', 'expense')->sum('amount');
+            $sharesIncome = Invoice::where('status', 'paid')->sum('amount');
+            $withdrawCharge = Withdrawal::where('status', 'approved')->sum('charge');
+            $withdrawExpense =Withdrawal::where('status', 'approved')->sum('total_amount');
+            $totalIncome = $manualIncome + $sharesIncome + $withdrawCharge;
+            $netExpense = $totalExpense + $withdrawExpense;
+            $netProfit = $totalIncome - $netExpense;
+
+
             return [
 
                 // user
@@ -59,7 +73,7 @@ class AdminDashboardController extends Controller
                 'totalWithdrawals' => Withdrawal::where('status', 'approved')->sum('total_amount'),
                 'pendingWithdrawals' => Withdrawal::where('status', 'pending')->sum('total_amount'),
                 'todayWithdrawals' => Withdrawal::where('status', 'approved')->whereDate('created_at', Carbon::today())->sum('total_amount'),
-                'withdrawChargeAmount' => Withdrawal::where('status', 'approved')->sum('charge'),
+                'withdrawChargeAmount' => $withdrawCharge,
 
                 // Investment
                 'totalFullPayment'       => Investor::where('purchase_type', 'full')->sum('total_amount'),
@@ -72,6 +86,11 @@ class AdminDashboardController extends Controller
                 'remainingShares'    => $totalShares - $totalSoldShares,
                 'installmentShares'  => $installmentShares,
 
+                // Accounts Summary
+                'totalIncome'   => $totalIncome,
+                'sharesIncome'  => $sharesIncome,
+                'totalExpense'  => $totalExpense,
+                'netProfit'     => $netProfit,
 
             ];
         });
