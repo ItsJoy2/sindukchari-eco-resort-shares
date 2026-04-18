@@ -42,10 +42,10 @@ class AccountsController extends Controller
                 return [
                     'id' => $item->id,
                     'date' => $item->date,
-                    'title' => $item->title,
                     'type' => $item->type,
                     'amount' => $item->amount,
                     'category' => $item->category->name ?? '-',
+                    'category_id' => $item->category_id,
                     'note' => $item->note,
                     'is_manual' => true,
                 ];
@@ -60,10 +60,9 @@ class AccountsController extends Controller
             ->map(function ($item) {
                 return [
                     'date' => $item->created_at->format('Y-m-d'),
-                    'title' => 'Invoice Payment',
                     'type' => 'income',
                     'amount' => $item->amount,
-                    'category' => 'Invoice',
+                    'category' => 'Invoice Payment',
                     'note' => 'Paid for Share: '
                         . ($item->investor->package->share_name ?? 'N/A')
                         . ' by '
@@ -142,7 +141,9 @@ class AccountsController extends Controller
             ->where('category', '!=', 'Invoice')
             ->sum('amount');
 
-        return view('admin.pages.accounts.index', compact('accountsData', 'totalIncome', 'totalExpense', 'totalInvoice', 'additionalIncome'));
+        $categories = AccountCategory::where('status', 1)->get();
+
+        return view('admin.pages.accounts.index', compact('accountsData', 'totalIncome', 'totalExpense', 'totalInvoice', 'additionalIncome', 'categories'));
     }
 
     /**
@@ -160,7 +161,6 @@ class AccountsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
             'type' => 'required|in:income,expense',
             'category_id' => 'required|exists:account_categories,id',
             'amount' => 'required|numeric|min:0',
@@ -169,7 +169,6 @@ class AccountsController extends Controller
         ]);
 
         Account::create([
-            'title' => $request->title,
             'type' => $request->type,
             'category_id' => $request->category_id,
             'amount' => $request->amount,
@@ -177,7 +176,7 @@ class AccountsController extends Controller
             'note' => $request->note,
         ]);
 
-        return redirect()->route('admin.accounts.index')->with('success', 'Account Added Successfully');
+        return redirect()->route('admin.accounts.index')->with('success', ucfirst($request->type) . ' Added Successfully');
     }
 
     /**
@@ -205,7 +204,6 @@ class AccountsController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'title' => 'required',
             'type' => 'required|in:income,expense',
             'category_id' => 'required|exists:account_categories,id',
             'amount' => 'required|numeric|min:0',
@@ -216,7 +214,6 @@ class AccountsController extends Controller
         $account = Account::findOrFail($id);
 
         $account->update([
-            'title' => $request->title,
             'type' => $request->type,
             'category_id' => $request->category_id,
             'amount' => $request->amount,
@@ -224,8 +221,7 @@ class AccountsController extends Controller
             'note' => $request->note,
         ]);
 
-        return redirect()->route('admin.accounts.index')
-            ->with('success', 'Account Updated Successfully');
+        return redirect()->route('admin.accounts.index')->with('success', ucfirst($request->type) . ' Updated Successfully');
     }
 
     /**
@@ -271,13 +267,12 @@ class AccountsController extends Controller
                 fputcsv($file, []);
 
                 // ===== HEADER =====
-                fputcsv($file, ['Date','Title','Type','Category','Amount','Note']);
+                fputcsv($file, ['Date','Type','Category','Amount','Note']);
 
                 // ===== DATA =====
                 foreach ($data as $row) {
                     fputcsv($file, [
                         $row['date'],
-                        $row['title'],
                         $row['type'],
                         $row['category'],
                         $row['amount'],
@@ -347,7 +342,6 @@ class AccountsController extends Controller
             ->map(function ($item) {
                 return [
                     'date' => $item->date,
-                    'title' => $item->title,
                     'type' => $item->type,
                     'amount' => $item->amount,
                     'category' => $item->category->name ?? '-',
@@ -364,10 +358,9 @@ class AccountsController extends Controller
             ->map(function ($item) {
                 return [
                     'date' => $item->created_at->format('Y-m-d'),
-                    'title' => 'Invoice Payment',
                     'type' => 'income',
                     'amount' => $item->amount,
-                    'category' => 'Invoice',
+                    'category' => 'Invoice Payment',
                     'note' => 'Paid for Share: '
                         . ($item->investor->package->share_name ?? 'N/A')
                         . ' by '

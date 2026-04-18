@@ -82,7 +82,6 @@ th {
         <thead>
             <tr>
                 <th>Date</th>
-                <th>Title</th>
                 <th>Type</th>
                 <th>Category</th>
                 <th>Amount</th>
@@ -94,7 +93,6 @@ th {
             @foreach($accounts as $a)
             <tr>
                 <td>{{ $a['date'] }}</td>
-                <td>{{ $a['title'] }}</td>
                 <td>{{ ucfirst($a['type']) }}</td>
                 <td>{{ $a['category'] }}</td>
                 <td>{{ number_format($a['amount'], 2) }}</td>

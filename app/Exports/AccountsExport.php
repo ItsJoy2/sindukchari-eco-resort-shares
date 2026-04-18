@@ -30,13 +30,12 @@ class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
         $rows->push([]);
 
         // ===== HEADER =====
-        $rows->push(['Date','Title','Type','Category','Amount','Note']);
+        $rows->push(['Date','Type','Category','Amount','Note']);
 
         // ===== DATA =====
         foreach ($this->data as $row) {
             $rows->push([
                 $row['date'],
-                $row['title'],
                 $row['type'],
                 $row['category'],
                 $row['amount'],
@@ -60,10 +59,10 @@ class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
                 $rowCount = $dataStart + count($this->data) - 1;
 
                 // ===== MERGE CELLS =====
-                $sheet->mergeCells('A1:F1');
-                $sheet->mergeCells('A2:F2');
-                $sheet->mergeCells('A3:F3');
-                $sheet->mergeCells('A4:F4');
+                $sheet->mergeCells('A1:E1');
+                $sheet->mergeCells('A2:E2');
+                $sheet->mergeCells('A3:E3');
+                $sheet->mergeCells('A4:E4');
 
                 // ===== ALIGN CENTER =====
                 $sheet->getStyle('A1:A4')->getAlignment()->setHorizontal('center');
@@ -72,25 +71,25 @@ class AccountsExport implements FromCollection, WithEvents, ShouldAutoSize
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
 
                 // ===== HEADER STYLE =====
-                $sheet->getStyle("A{$headerRow}:F{$headerRow}")
+                $sheet->getStyle("A{$headerRow}:E{$headerRow}")
                     ->getFont()
                     ->setBold(true);
 
                 // OPTIONAL HEADER BG
-                $sheet->getStyle("A{$headerRow}:F{$headerRow}")
+                $sheet->getStyle("A{$headerRow}:E{$headerRow}")
                     ->getFill()
                     ->setFillType('solid')
                     ->getStartColor()
                     ->setRGB('D9D9D9');
 
                 // ===== TABLE BORDER =====
-                $sheet->getStyle("A{$headerRow}:F{$rowCount}")
+                $sheet->getStyle("A{$headerRow}:E{$rowCount}")
                     ->getBorders()
                     ->getAllBorders()
                     ->setBorderStyle('thin');
 
                 // ===== OUTER BORDER =====
-                $sheet->getStyle("A1:F{$rowCount}")
+                $sheet->getStyle("A1:E{$rowCount}")
                     ->getBorders()
                     ->getOutline()
                     ->setBorderStyle('medium');

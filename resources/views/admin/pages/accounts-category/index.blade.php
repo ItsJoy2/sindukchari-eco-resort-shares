@@ -13,9 +13,10 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0">Accounts Category</h4>
-            <a href="{{ route('admin.accounts-category.create') }}" class="btn btn-success btn-sm">
+            <a href="javascript:void(0)" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
                 + Add Category
             </a>
+            @include('admin.pages.accounts-category.modal.create')
         </div>
 
         <div class="card-body table-responsive">
@@ -46,22 +47,17 @@
 
                             {{-- Actions --}}
                             <td class="d-flex gap-1">
-                                <a href="{{ route('admin.accounts-category.edit', $category->id) }}"
-                                   class="btn btn-sm btn-info">
-                                   Edit
-                                </a>
-
-                                <form action="{{ route('admin.accounts-category.destroy', $category->id) }}"
-                                      method="POST"
-                                      onsubmit="return confirm('Are you sure?')">
-
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button class="btn btn-sm btn-danger">
-                                        Delete
-                                    </button>
-                                </form>
+                                <button class="btn btn-sm btn-info editCategoryBtn" data-id="{{ $category->id }}" data-name="{{ $category->name }}" data-status="{{ $category->status }}" data-bs-toggle="modal" data-bs-target="#editCategoryModal" >
+                                    Edit
+                                </button>
+                                @include('admin.pages.accounts-category.modal.edit')
+                                
+                                <button class="btn btn-danger btn-sm deleteBtn"
+                                        data-url="{{ route('admin.accounts-category.destroy', $category->id) }}"
+                                        data-name="{{ $category->name }}">
+                                    Delete
+                                </button>
+                                    @include('admin.modal.confirmationmodal')
                             </td>
                         </tr>
                     @empty

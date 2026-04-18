@@ -19,9 +19,8 @@
 
     <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title mb-0">Accounts</h4>
-        <a href="{{ route('admin.accounts.create') }}" class="btn btn-success btn-sm">
-            + Add Accounts Items
-        </a>
+        <a href="javascript:void(0)" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#createModal">Add Accounts Items</a>
+        @include('admin.pages.accounts.modal.create')
     </div>
 
     {{-- FILTER --}}
@@ -73,7 +72,7 @@
             </div>
 
             {{-- Date Range --}}
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <input type="text" name="date_range" class="form-control date-range" placeholder="Select Date Range" value="{{ request('date_range') }}">
             </div>
 
@@ -104,11 +103,11 @@
 
             {{-- Search --}}
             <div class="col-md-3">
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search anything...">
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Search...">
             </div>
 
             {{-- Buttons --}}
-            <div class="col-md-1 d-flex gap-1">
+            <div class="col-md-2 d-flex gap-1">
                 <button class="btn btn-primary "><i class="fas fa-filter"></i></button>
                 <a href="{{ route('admin.accounts.index') }}" class="btn btn-secondary"><i class="fas fa-undo"></i></a>
             </div>
@@ -148,7 +147,6 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>Date</th>
-                        <th>Title</th>
                         <th>Type</th>
                         <th>Category</th>
                         <th>Amount</th>
@@ -164,7 +162,6 @@
                         <tr>
 
                             <td>{{ $account['date'] }}</td>
-                            <td>{{ $account['title'] }}</td>
 
                             <td>
                                 <span class="badge bg-{{ $account['type'] == 'income' ? 'success' : 'danger' }}">
@@ -187,24 +184,21 @@
 
                                     <div class="d-flex gap-1">
 
-                                        <a href="{{ route('admin.accounts.edit', $account['id']) }}"
+                                        {{-- <a href="{{ route('admin.accounts.edit', $account['id']) }}"
                                            class="btn btn-sm btn-info">
                                             Edit
-                                        </a>
+                                        </a> --}}
+                                        <button class="btn btn-sm btn-info editBtn" data-id="{{ $account['id'] }}" data-type="{{ $account['type'] }}" data-category="{{ $account['category_id'] ?? '' }}" data-date="{{ $account['date'] }}" data-amount="{{ $account['amount'] }}" data-note="{{ $account['note'] }}" data-bs-toggle="modal" data-bs-target="#editModal" >
+                                            Edit
+                                        </button>
+                                        @include('admin.pages.accounts.modal.edit')
 
-                                        <form action="{{ route('admin.accounts.destroy', $account['id']) }}"
-                                              method="POST"
-                                              onsubmit="return confirm('Are you sure?')">
-
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button class="btn btn-sm btn-danger">
-                                                Delete
-                                            </button>
-
-                                        </form>
-
+                                        <button class="btn btn-danger btn-sm deleteBtn"
+                                                data-url="{{ route('admin.accounts.destroy', $account['id']) }}"
+                                                data-name="{{ $account['type'] }} with amount {{ number_format($account['amount'], 2) }} on {{ $account['date'] }}">
+                                            Delete
+                                        </button>
+                                            @include('admin.modal.confirmationmodal')
                                     </div>
 
                                 @else
@@ -217,7 +211,7 @@
 
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No accounts found</td>
+                            <td colspan="6" class="text-center">No accounts found</td>
                         </tr>
                     @endforelse
 

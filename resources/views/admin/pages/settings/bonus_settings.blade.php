@@ -234,7 +234,7 @@
                                     <input type="number"
                                            step="0.01"
                                            name="reactivation_charge"
-                                           value="{{ $bonus->reactivation_charge }}"
+                                           value="{{ number_format($bonus->reactivation_charge, 2) }}"
                                            class="form-control">
                                 </div>
 
@@ -243,7 +243,7 @@
                                     <input type="number"
                                            min="1"
                                            name="max_pending_installments"
-                                           value="{{ $bonus->max_pending_installments }}"
+                                           value="{{ number_format($bonus->max_pending_installments, 2) }}"
                                            class="form-control">
                                 </div>
 

@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
             $table->enum('type', ['income', 'expense']);
             $table->foreignId('category_id')->constrained('account_categories')->cascadeOnDelete();
             $table->decimal('amount', 12, 2);

@@ -99,3 +99,34 @@
         });
     });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    let deleteModal = new bootstrap.Modal(document.getElementById('globalDeleteModal'));
+    let deleteForm = document.getElementById('globalDeleteForm');
+    let modalBody = document.querySelector('#globalDeleteModal .modal-body');
+
+    document.querySelectorAll('.deleteBtn').forEach(button => {
+
+        button.addEventListener('click', function () {
+
+            let url = this.getAttribute('data-url');
+            let name = this.getAttribute('data-name');
+
+            // form action set
+            deleteForm.action = url;
+
+            // dynamic message
+            modalBody.innerHTML = name
+                ? `Are you sure you want to delete <b>${name}</b>?`
+                : `Are you sure you want to delete this item?`;
+
+            // show modal
+            deleteModal.show();
+        });
+
+    });
+
+});
+</script>
