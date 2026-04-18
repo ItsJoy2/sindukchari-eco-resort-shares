@@ -99,6 +99,9 @@ class AccountsController extends Controller
                     . ($item->user->email ?? 'N/A'). ' via ' . ucfirst($item->method)
                     . ($detailsText ? ' | ' . $detailsText : '');
 
+                 $chargeNote = 'Withdraw charge recieved from '
+                    . ($item->user->email ?? 'N/A');
+
                 return [
 
                     [
@@ -118,7 +121,7 @@ class AccountsController extends Controller
                         'type' => 'income',
                         'amount' => $item->charge,
                         'category' => 'Withdraw Charge',
-                        'note' => $note,
+                        'note' => $chargeNote,
                         'is_manual' => false,
                         'created_at' => $item->created_at,
                     ]
@@ -446,6 +449,8 @@ class AccountsController extends Controller
                 $note = 'Withdraw by '
                     . ($item->user->email ?? 'N/A')
                     . ($detailsText ? ' | ' . $detailsText : '');
+                 $chargeNote = 'Withdraw charge recieved from '
+                    . ($item->user->email ?? 'N/A');
 
                 return [
                     [
@@ -460,7 +465,7 @@ class AccountsController extends Controller
                         'type' => 'income',
                         'amount' => $item->charge,
                         'category' => 'Withdraw Charge',
-                        'note' => $note,
+                        'note' => $chargeNote,
                     ]
                 ];
             });
