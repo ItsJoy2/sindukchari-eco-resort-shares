@@ -134,10 +134,10 @@
 
             <div class="row g-4">
 
-                <x-dashboard.stat-card icon="fas fa-arrow-down" value="{{ number_format($dashboardData['totalIncome'], 2) }}" label="Total Income" bg="success" />
-                <x-dashboard.stat-card icon="fas fa-coins" value="{{ number_format($dashboardData['sharesIncome'], 2) }}" label="Shares Income" bg="primary" />
-                <x-dashboard.stat-card icon="fas fa-arrow-up" value="{{ number_format($dashboardData['totalExpense'], 2) }}" label="Total Expense" bg="danger" />
-                <x-dashboard.stat-card icon="fas fa-chart-line" value="{{ number_format($dashboardData['netProfit'], 2) }}" label="Net Profit" bg="{{ $dashboardData['netProfit'] >= 0 ? 'success' : 'danger' }}"
+                <x-dashboard.stat-card icon="fas fa-arrow-down" value="৳{{ number_format($dashboardData['totalIncome'], 2) }}" label="Total Income" bg="success" />
+                <x-dashboard.stat-card icon="fas fa-coins" value="৳{{ number_format($dashboardData['sharesIncome'], 2) }}" label="Shares Income" bg="primary" />
+                <x-dashboard.stat-card icon="fas fa-arrow-up" value="৳{{ number_format($dashboardData['totalExpense'], 2) }}" label="Total Expense" bg="danger" />
+                <x-dashboard.stat-card icon="fas fa-chart-line" value="৳{{ number_format($dashboardData['netProfit'], 2) }}" label="Net Profit" bg="{{ $dashboardData['netProfit'] >= 0 ? 'success' : 'danger' }}"
 />
 
             </div>
