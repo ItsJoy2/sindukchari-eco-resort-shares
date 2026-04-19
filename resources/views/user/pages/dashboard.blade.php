@@ -29,25 +29,10 @@
     @endif
 @endauth
 
-            {{-- <div class="row">
-              <div class="col-xl-6 grid-margin stretch-card">
-                <div class="card ">
-                    <script src="https://widgets.coingecko.com/gecko-coin-price-chart-widget.js"></script>
-                        <gecko-coin-price-chart-widget locale="en" dark-mode="true" outlined="true" coin-id="harmony" initial-currency="usd" height="200"></gecko-coin-price-chart-widget>
-                </div>
-              </div>
-              <div class="col-xl-6 grid-margin stretch-card">
-                <div class="card ">
-                    <script src="https://widgets.coingecko.com/gecko-coin-price-chart-widget.js"></script>
-                    <gecko-coin-price-chart-widget locale="en" dark-mode="true" outlined="true" coin-id="polkadot" initial-currency="usd" height="200"></gecko-coin-price-chart-widget>
-                </div>
-              </div>
-            </div> --}}
-
 {{-- wallet card section  --}}
 
             <div class="row">
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
                     <div class="row">
@@ -67,31 +52,11 @@
 
                       </div>
                     </div>
-                    <h6 class="text-muted font-weight-normal">Funding Wallet</h6>
+                    <h6 class="text-muted font-weight-normal">Wallet Balance</h6>
                   </div>
                 </div>
-              </div>
-              {{-- <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
-                <div class="card">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-9">
-                        <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">{{ number_format($user->bonus_wallet, 2) }}</h3>
-                          <p class="text-success ml-2 mb-0 font-weight-medium">+3.5%</p>
-                        </div>
-                      </div>
-                      <div class="col-3">
-                        <div class="icon icon-box-success ">
-                          <span class="mdi mdi-bitcoin icon-item"></span>
-                        </div>
-                      </div>
-                    </div>
-                    <h6 class="text-muted font-weight-normal">Yeeo Token Wallet</h6>
-                  </div>
                 </div>
-              </div> --}}
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
                     <div class="row">
@@ -102,16 +67,61 @@
                         </div>
                       </div>
                       <div class="col-3">
-                        <div class="icon icon-box-success">
+                        <div class="icon icon-box-primary">
                           <span class="mdi mdi-bank icon-item"></span>
                         </div>
                       </div>
                     </div>
-                    <h6 class="text-muted font-weight-normal">Bonus Wallet</h6>
+                    <h6 class="text-muted font-weight-normal">Income Balance</h6>
                   </div>
                 </div>
-              </div>
-              <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                </div>
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                    <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                        <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                            <h3 class="mb-0">৳{{ number_format($dashboard['totalInvestment'], 2) }}</h3>
+                            {{-- <p class="text-success ml-2 mb-0 font-weight-medium">+11%</p> --}}
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="icon icon-box-info">
+                            <span class="mdi mdi-cash-multiple icon-item"></span>
+                            </div>
+                        </div>
+                        </div>
+                        <h6 class="text-muted font-weight-normal">Total Investments</h6>
+                    </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                    <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                        <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                            <h3 class="mb-0">৳{{ number_format($dashboard['totalIncome'], 2) }}</h3>
+                            {{-- <p class="text-success ml-2 mb-0 font-weight-medium">+3.5%</p> --}}
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            {{-- <div class="icon icon-box-success ">
+                            <span class="mdi mdi-arrow-top-right icon-item"></span>
+                            </div> --}}
+                            <div class="icon icon-box-warning">
+                            <span class="mdi mdi-wallet-giftcard icon-item"></span>
+                            </div>
+
+                        </div>
+                        </div>
+                        <h6 class="text-muted font-weight-normal">Total Income</h6>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
                     <div class="row">
@@ -131,46 +141,64 @@
                 </div>
                 </div>
                 <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                            <div class="row">
+                                <div class="col-9">
+                                <div class="d-flex align-items-center align-self-start">
+                                    <h3 class="mb-0">{{ number_format($dashboard['totalInstallmentShares']) }}</h3>
+                                </div>
+                                </div>
+                                <div class="col-3">
+                                <div class="icon icon-box-warning">
+                                    <span class="mdi mdi-file-document-box-multiple icon-item"></span>
+                                </div>
+                                </div>
+                            </div>
+                            <h6 class="text-muted font-weight-normal">Installment Shares</h6>
+                            </div>
+                        </div>
+                </div>
+
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
                     <div class="card">
                         <div class="card-body">
                         <div class="row">
                             <div class="col-9">
                             <div class="d-flex align-items-center align-self-start">
-                                <h3 class="mb-0">{{ number_format($dashboard['totalInstallmentShares']) }}</h3>
+                                <h3 class="mb-0">{{ number_format($dashboard['totalDue']) }}</h3>
                             </div>
                             </div>
                             <div class="col-3">
-                            <div class="icon icon-box-warning">
-                                <span class="mdi mdi-file-document-box-multiple icon-item"></span>
+                            <div class="icon icon-box-danger">
+                            <span class="mdi mdi-alert-circle icon-item"></span>
                             </div>
                             </div>
                         </div>
-                        <h6 class="text-muted font-weight-normal">Installment Shares</h6>
+                        <h6 class="text-muted font-weight-normal">Total Due Balance</h6>
                         </div>
                     </div>
-                    </div>
-
-
-              {{-- <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
-                <div class="card">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col-9">
-                        <div class="d-flex align-items-center align-self-start">
-                          <h3 class="mb-0">$12.34</h3>
-                          <p class="text-danger ml-2 mb-0 font-weight-medium">-2.4%</p>
-                        </div>
-                      </div>
-                      <div class="col-3">
-                        <div class="icon icon-box-success">
-                          <span class="mdi mdi-trending-down icon-item"></span>
-                        </div>
-                      </div>
-                    </div>
-                    <h6 class="text-muted font-weight-normal">Monthly ROI</h6>
-                  </div>
                 </div>
-              </div> --}}
+                <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+                    <div class="card">
+                        <div class="card-body">
+                        <div class="row">
+                            <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                                <h3 class="mb-0">{{ number_format($dashboard['shareCurrentValue'], 2) }}</h3>
+                            </div>
+                            </div>
+                            <div class="col-3">
+                            <div class="icon icon-box-primary">
+                                <span class="mdi mdi-trending-up icon-item"></span>
+                            </div>
+                            </div>
+                        </div>
+                        <h6 class="text-muted font-weight-normal">Share Current Value</h6>
+                        </div>
+                    </div>
+                </div>
+
               <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
                 <div class="card">
                   <div class="card-body">
@@ -579,7 +607,7 @@
                     {{ $dashboard['totalWithdraw'] ?? 0 }},
                     {{ $dashboard['totalTransfer'] ?? 0 }}
                 ],
-                backgroundColor: ["#ffab00", "#111111", "#00d25b" ]
+                backgroundColor: ["#00d25b","#db0000","#8F5FE8"]
             }]
         };
 

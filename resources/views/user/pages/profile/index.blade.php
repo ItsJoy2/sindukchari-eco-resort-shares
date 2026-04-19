@@ -44,6 +44,14 @@
                         </label>
                         <input type="file" name="image" id="profileImageInput" class="d-none" accept="image/*">
                         @error('image') <small class="text-danger d-block">{{ $message }}</small> @enderror
+
+                        <h5>
+                            @if(auth()->user()->kyc_status == 1)
+                                <span class="badge bg-success">KYC Verified</span>
+                            @else
+                                <span class="badge bg-secondary text-info">KYC Not Verified</span>
+                            @endif
+                    </h5>
                     </div>
 
 

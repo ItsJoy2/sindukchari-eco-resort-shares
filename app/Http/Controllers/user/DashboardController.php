@@ -26,6 +26,13 @@ class DashboardController extends Controller
         $totalTransfer = Transactions::where('user_id', $user->id)->where('remark', 'transfer')->sum('amount');
         $bonusBalance = $user->bonus_wallet;
 
+        $totalIncome = Transactions::where('user_id', $user->id)->whereIn('remark', ['level_bonus','director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus','director_pool', 'shareholder_pool', 'club_pool', 'rank_pool'])->where('type', '+')->sum('amount');
+        $shareCurrentValue = 2000;
+        $totalPendingInstallment = Invoice::where('user_id', $user->id)->where('status', 'pending')->sum('amount');
+        $totalInvestment = Investor::where('user_id', $user->id)->sum('total_amount');
+
+        $totalDue = $totalInvestment - $totalPendingInstallment;
+
         // $bonusBalance = Transactions::where('user_id', $user->id) ->where('type', '+')->whereIn('remark', ['rank_bonus', 'director_bonus', 'club_bonus', 'shareholder_bonus'])->sum('amount');
 
 
@@ -34,7 +41,7 @@ class DashboardController extends Controller
 
         $allowedTypes = [ 'transfer', 'convert', 'level_bonus', 'director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus', ];
 
-            $allowedTransactionRemarks = [
+        $allowedTransactionRemarks = [
                 'withdrawal',
                 'transfer',
                 'convert',
@@ -250,6 +257,9 @@ class DashboardController extends Controller
             'rank_label'  => $rankLabels[$currentRank] ?? 'No Rank',
             // 'rank_color'  => $rankColors[$currentRank] ?? 'danger',
             'club_label'  => $clubLabels[$currentClub] ?? 'No Club',
+            'shareCurrentValue' => $shareCurrentValue,
+            'totalDue'          => $totalDue,
+            'totalIncome'       => $totalIncome,
 
          ];
 

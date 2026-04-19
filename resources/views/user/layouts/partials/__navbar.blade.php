@@ -119,9 +119,40 @@
               <li class="nav-item dropdown">
                 <a class="nav-link" id="profileDropdown" href="#" data-toggle="dropdown">
                 <div class="navbar-profile">
-                   <img src="{{ auth()->user()->image ? asset('storage/' . auth()->user()->image) : asset('profile.png') }}" alt="Profile Image" class="img-xs rounded-circle shadow bg-secondary border {{ auth()->user()->is_active == 1 ? 'border-success' : 'border-secondary' }}" style="object-fit: cover; border-width: 2px !important;" onerror="this.src='{{ url('assets/profile-icon.png') }}'">
-                    <p class="mb-0 d-none d-sm-block navbar-profile-name">{{ auth()->user()->name }}</p>
-                    <i class="mdi mdi-menu-down d-none d-sm-block"></i>
+                    <div class="position-relative d-inline-block">
+
+                        {{-- Profile Image --}}
+                        <img src="{{ auth()->user()->image ? asset('storage/' . auth()->user()->image) : asset('profile.png') }}"
+                            alt="Profile Image"
+                            class="img-xs rounded-circle shadow bg-secondary border {{ auth()->user()->is_active == 1 ? 'border-success' : 'border-secondary' }}"
+                            style="object-fit: cover; border-width: 2px !important;"
+                            onerror="this.src='{{ url('assets/profile-icon.png') }}'">
+
+                        {{-- KYC Verified Badge --}}
+                        @if(auth()->user()->kyc_status == 1)
+                            <span class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle bg-success border border-white"
+                                style="width:14px; height:14px;" title="KYC Verified">
+                                <i class="mdi mdi-check text-white" style="font-size:10px;"></i>
+                            </span>
+                        @endif
+
+                    </div>
+                    <div class="ms-2 d-none d-sm-block text-end">
+                        <p class="mb-0 navbar-profile-name">{{ auth()->user()->name }}</p>
+
+
+                        <small class="text-muted d-block text-end">
+                            @if(auth()->user()->is_director == 1)
+                                Director
+                            @elseif(auth()->user()->is_shareholder == 1)
+                                Shareholder
+                            @else
+
+                            @endif
+                        </small>
+                    </div>
+
+                    <i class="mdi mdi-menu-down d-none d-sm-block ms-1"></i>
                 </div>
 
 
