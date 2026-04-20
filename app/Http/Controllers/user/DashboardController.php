@@ -27,11 +27,13 @@ class DashboardController extends Controller
         $bonusBalance = $user->bonus_wallet;
 
         $totalIncome = Transactions::where('user_id', $user->id)->whereIn('remark', ['level_bonus','director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus','director_pool', 'shareholder_pool', 'club_pool', 'rank_pool'])->where('type', '+')->sum('amount');
-        $shareCurrentValue = 2000;
-        $totalPendingInstallment = Invoice::where('user_id', $user->id)->where('status', 'pending')->sum('amount');
-        $totalInvestment = Investor::where('user_id', $user->id)->sum('total_amount');
+        $shareCurrentValue = Investor::with('package')->where('user_id', $user->id)->get()->sum(function ($invest) {
+            return ($invest->package->amount ?? 0) * $invest->quantity;
+        });
+        $totalPendingInstallment = Investor::where('user_id', $user->id)->where('purchase_type', 'installment')->sum('paid_amount');
+        $totalInstallmentInvestment = Investor::where('user_id', $user->id)->where('purchase_type', 'installment')->sum('total_amount');
 
-        $totalDue = $totalInvestment - $totalPendingInstallment;
+        $totalDue = $totalInstallmentInvestment - $totalPendingInstallment;
 
         // $bonusBalance = Transactions::where('user_id', $user->id) ->where('type', '+')->whereIn('remark', ['rank_bonus', 'director_bonus', 'club_bonus', 'shareholder_bonus'])->sum('amount');
 
@@ -126,7 +128,7 @@ class DashboardController extends Controller
         $now = Carbon::now();
             $lastMonth = $now->copy()->subMonth();
 
-            $totalInvestment = Investor::where('user_id', $user->id)->sum('total_amount');
+            $totalInvestment = Investor::where('user_id', $user->id)->sum('paid_amount');
 
             $startOfMonth = $now->copy()->startOfMonth();
             // $previousTotalInvestment = Investor::where('user_id', $user->id)
