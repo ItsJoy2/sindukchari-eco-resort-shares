@@ -17,26 +17,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('mobile',15);
-            $table->decimal('funding_wallet', 20, 8)->default(0.00000000);
-            $table->decimal('bonus_wallet', 20, 8)->default(0.00000000);
-            $table->string('refer_code', 6)->unique();
-            $table->foreignId('refer_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->boolean('is_active')->default(false);
-            $table->timestamp('last_activated_at')->nullable();
-            $table->boolean('is_block')->default(false);
-            $table->enum('rank', ['none','rank1','rank2','rank3'])->default('none');
-            $table->enum('club', ['none', 'club1', 'club2', 'club3'])->default('none');
-            $table->boolean('is_shareholder')->default(false);
-            $table->boolean('is_director')->default(false);
-            $table->boolean('kyc_status')->default(false);
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role',['user','admin'])->default('user');
-            $table->date('birthday')->nullable();
-            $table->string('nid_or_passport')->nullable();
-            $table->string('address')->nullable();
-            $table->string('image')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });
@@ -59,13 +42,9 @@ return new class extends Migration
        DB::table('users')->insert([
            'name' => 'admin',
            'email' => 'admin@edulife.com',
-           'mobile' => '0123456789',
            'password' => Hash::make('Admin123$'),
            'role' => 'admin',
            'is_active' => true,
-           'is_block' => false,
-           'refer_code' => 'admin',
-           'email_verified_at' => now(),
        ]);
     }
 

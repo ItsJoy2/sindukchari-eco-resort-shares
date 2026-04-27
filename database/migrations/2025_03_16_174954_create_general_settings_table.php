@@ -21,8 +21,8 @@ return new class extends Migration
         });
 
         DB::table('general_settings')->insert([
-            'app_name' => 'Sindukchari ECO Resort',
-            'logo' => 'Sindukchari ECO Resort',
+            'app_name' => 'Edulife Todo app',
+            'logo' => 'Edulife Todo app',
             'favicon' => 'null',
             'created_at' => now(),
             'updated_at' => now(),

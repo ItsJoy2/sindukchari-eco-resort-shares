@@ -1,210 +1,243 @@
 @extends('admin.layouts.app')
+
 @section('content')
-    <div class="container mt-4">
+<div class="container mt-4">
 
-        {{-- Pending Withdrawals Alert --}}
-        {{-- @if($dashboardData['pendingWithdrawals'] > 0)
-            <a href="/withdraw" class="text-decoration-none">
-                <div class="alert alert-warning d-flex align-items-center shadow-sm rounded p-3 mb-4">
-                    <i class="fas fa-exclamation-triangle text-dark fs-4 me-3"></i>
-                    <div class="fw-semibold text-dark">
-                        You currently have {{ $dashboardData['pendingWithdrawalsCount'] }} pending withdrawal {{ $dashboardData['pendingWithdrawalsCount'] > 1 ? 'requests' : 'request' }}.
+    <h4 class="mb-4 fw-bold">
+        Task Report ({{ $userData['date'] }})
+    </h4>
+
+    {{-- USER CARDS --}}
+    <div class="row g-4">
+
+        @foreach($userData['users'] as $user)
+
+        <div class="col-md-4">
+
+            <div class="card shadow-sm border-0 h-auto hover-shadow
+                {{ $userData['topUser']['id'] == $user['id'] ? 'border border-success' : '' }}">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        {{-- USER NAME --}}
+                        <h5 class="fw-bold mb-0">
+                            {{ $user['name'] }}
+                        </h5>
+
+                        {{-- TOP BADGE --}}
+                        @if($userData['topUser']['id'] == $user['id'])
+                            <span class="badge bg-success">
+                                🏆 Top Performer
+                            </span>
+                        @endif
+
                     </div>
-                </div>
-            </a>
-        @endif --}}
 
-        {{-- Users Section --}}
-        <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body">
-                <h5 class="card-title fw-bold mb-4">User Overview</h5>
-                <div class="row g-4">
+                    <div class="row g-1 mb-3">
 
-                    @php
-                        $users = [
-                            ['label' => 'Total Users', 'value' => $dashboardData['totalUser'], 'icon' => 'fas fa-user', 'bg' => 'bg-success'],
-                            ['label' => 'Active Users', 'value' => $dashboardData['activeUser'], 'icon' => 'fas fa-users-cog', 'bg' => 'bg-warning'],
-                            ['label' => 'Blocked Users', 'value' => $dashboardData['blockUser'], 'icon' => 'fas fa-user-slash', 'bg' => 'bg-danger'],
-                            ['label' => 'New Users', 'value' => $dashboardData['newUser'], 'icon' => 'fas fa-user-plus', 'bg' => 'bg-primary'],
-                        ];
-                    @endphp
-
-                    @foreach ($users as $user)
-                        <div class="col-md-3">
-                            <div class="d-flex justify-content-between align-items-center border rounded p-3 h-100 bg-light hover-shadow">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-box {{ $user['bg'] }} bg-opacity-75 text-white rounded d-flex justify-content-center align-items-center me-3" style="width: 48px; height: 48px;">
-                                        <i class="{{ $user['icon'] }}"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold fs-5">{{ $user['value'] }}</div>
-                                        <small class="text-muted">{{ $user['label'] }}</small>
-                                    </div>
-                                </div>
-                              <a href="{{ route('admin.users.index') }}"> <i class="fas fa-arrow-right text-muted"></i></a>
+                        <div class="col-4">
+                            <div class="pt-1 border rounded text-center">
+                                <small class="text-muted d-block">Today</small>
+                                <strong class="text-primary">{{ $user['today_total'] }}</strong>
                             </div>
                         </div>
+
+                        <div class="col-4">
+                            <div class="pt-1 border rounded text-center">
+                                <small class="text-muted d-block">Pending</small>
+                                <strong class="text-warning">{{ $user['old_pending'] }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class=" pt-1 border rounded text-center">
+                                <small class="text-muted d-block">Completed</small>
+                                <strong class="text-success">{{ $user['completed_today'] }}</strong>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {{-- PROGRESS BAR --}}
+                    <div class="progress mb-2" style="height:8px;">
+                        <div class="progress-bar
+                            {{ $user['progress'] >= 80 ? 'bg-success' : ($user['progress'] >= 40 ? 'bg-warning' : 'bg-danger') }}"
+                            style="width: {{ $user['progress'] }}%">
+                        </div>
+                    </div>
+
+                    <small>Progress: {{ $user['progress'] }}%</small>
+
+                    {{-- MODAL BUTTON --}}
+                    <button class="btn btn-md btn-outline-danger w-100 mt-2"
+                        data-bs-toggle="modal"
+                        data-bs-target="#pendingModal-{{ $user['id'] }}">
+                        Pending Tasks
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+
+        {{-- MODAL --}}
+        <div class="modal fade" id="pendingModal-{{ $user['id'] }}" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {{ $user['name'] }} - Pending Tasks
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        @if(count($user['pending_tasks']) > 0)
+
+                            <ul class="list-group">
+
+                                @foreach($user['pending_tasks'] as $task)
+                                <li class="list-group-item d-flex justify-content-between">
+
+                                    <div>
+                                        <div class="fw-semibold">
+                                            {{ $task['title'] }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ $task['created_at'] }}
+                                        </small>
+                                    </div>
+
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+
+                                </li>
+                                @endforeach
+
+                            </ul>
+
+                        @else
+                            <div class="text-center text-muted">
+                                No pending tasks
+                            </div>
+                        @endif
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @endforeach
+
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+
+    <div class="card-body">
+
+        {{-- Header with select --}}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <h5 class="fw-bold mb-0">
+                Performance Overview
+            </h5>
+
+            <form method="GET" class="d-flex gap-2">
+
+                {{-- MONTH --}}
+                <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}"
+                            {{ $userData['selectedMonth'] == $m ? 'selected' : '' }}>
+                            {{ DateTime::createFromFormat('!m', $m)->format('F') }}
+                        </option>
+                    @endfor
+
+                </select>
+
+                {{-- YEAR --}}
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+
+                    @foreach($userData['years'] as $y)
+                        <option value="{{ $y }}"
+                            {{ $userData['selectedYear'] == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
                     @endforeach
 
-                        {{-- Pool Wallet Cards --}}
-                    <div class="row g-4 mt-3">
-                        @php
-                            $poolWallets = [
-                                ['label' => 'Rank Pool', 'value' => $dashboardData['poolRank'], 'icon' => 'fas fa-crown', 'bg' => 'bg-primary'],
-                                ['label' => 'Club Pool', 'value' => $dashboardData['poolClub'], 'icon' => 'fas fa-users', 'bg' => 'bg-info'],
-                                ['label' => 'Shareholder Pool', 'value' => $dashboardData['poolShareholder'], 'icon' => 'fas fa-user-tie', 'bg' => 'bg-success'],
-                                ['label' => 'Director Pool', 'value' => $dashboardData['poolDirector'], 'icon' => 'fas fa-user-shield', 'bg' => 'bg-warning'],
-                            ];
-                        @endphp
+                </select>
 
-                        @foreach ($poolWallets as $wallet)
-                            <div class="col-md-3">
-                                <div class="d-flex justify-content-between align-items-center border rounded p-3 h-100 bg-light hover-shadow">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-box {{ $wallet['bg'] }} bg-opacity-75 text-white rounded d-flex justify-content-center align-items-center me-3" style="width: 48px; height: 48px;">
-                                            <i class="{{ $wallet['icon'] }}"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold fs-5">৳{{ number_format($wallet['value'], 2) }}</div>
-                                            <small class="text-muted">{{ $wallet['label'] }}</small>
-                                        </div>
-                                    </div>
+            </form>
+
+        </div>
+
+        {{-- TABLE --}}
+        <div class="table-responsive">
+
+            <table class="table table-bordered text-center">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Total Tasks</th>
+                        <th>Completed</th>
+                        <th>Pending</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @forelse($userData['users'] as $user)
+
+                    <tr>
+
+                        <td>{{ $user['name'] }}</td>
+
+                        <td>{{ $user['selected_total'] }}</td>
+
+                        <td class="text-success fw-bold">
+                            {{ $user['selected_completed'] }}
+                        </td>
+
+                        <td class="text-warning fw-bold">
+                            {{ $user['selected_total'] - $user['selected_completed'] }}
+                        </td>
+
+                        <td>
+                            <div class="progress" style="height:6px;">
+                                <div class="progress-bar bg-primary"
+                                    style="width: {{ $user['progress'] }}%">
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
 
-                    {{-- Share count   --}}
-                    <div class="row g-4">
-                        @php
-                            $shareStats = [
-                                [
-                                    'label' => 'Total Shares',
-                                    'value' => $dashboardData['totalShares'] ?? 0,
-                                    'icon'  => 'fas fa-layer-group',
-                                    'bg'    => 'bg-primary'
-                                ],
-                                [
-                                    'label' => 'Total Shares Sold',
-                                    'value' => $dashboardData['totalSoldShares'] ?? 0,
-                                    'icon'  => 'fas fa-shopping-cart',
-                                    'bg'    => 'bg-success'
-                                ],
-                                [
-                                    'label' => 'Remaining Shares',
-                                    'value' => $dashboardData['remainingShares'] ?? 0,
-                                    'icon'  => 'fas fa-box-open',
-                                    'bg'    => 'bg-warning'
-                                ],
-                                [
-                                    'label' => 'Installment Share',
-                                    'value' => $dashboardData['installmentShares'] ?? 0,
-                                    'icon'  => 'fas fa-money-bill-wave',
-                                    'bg'    => 'bg-info'
-                                ],
-                            ];
-                        @endphp
+                            <small>{{ $user['progress'] }}%</small>
+                        </td>
 
-                        @foreach ($shareStats as $stat)
-                            <div class="col-md-3">
-                                <div class="d-flex justify-content-between align-items-center border rounded p-3 h-100 bg-light hover-shadow">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-box {{ $stat['bg'] }} bg-opacity-75 text-white rounded d-flex justify-content-center align-items-center me-3" style="width: 48px; height: 48px;">
-                                            <i class="{{ $stat['icon'] }}"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold fs-5">{{ number_format($stat['value'], 0) }}</div>
-                                            <small class="text-muted">{{ $stat['label'] }}</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            No data available.
+                        </td>
+                    @endforelse
 
+                </tbody>
 
-                </div>
-            </div>
+            </table>
+
         </div>
 
-        {{-- Accounts Summary --}}
-        <div class="card shadow-sm mb-4 border-0">
-        <div class="card-body">
-            <h5 class="card-title fw-bold mb-4">Accounts Summary</h5>
-
-            <div class="row g-4">
-
-                <x-dashboard.stat-card icon="fas fa-arrow-down" value="৳{{ number_format($dashboardData['totalIncome'], 2) }}" label="Total Income" bg="success" />
-                <x-dashboard.stat-card icon="fas fa-coins" value="৳{{ number_format($dashboardData['sharesIncome'], 2) }}" label="Shares Income" bg="primary" />
-                <x-dashboard.stat-card icon="fas fa-arrow-up" value="৳{{ number_format($dashboardData['totalExpense'], 2) }}" label="Total Expense" bg="danger" />
-                <x-dashboard.stat-card icon="fas fa-chart-line" value="৳{{ number_format($dashboardData['netProfit'], 2) }}" label="Net Profit" bg="{{ $dashboardData['netProfit'] >= 0 ? 'success' : 'danger' }}"
-/>
-
-            </div>
-        </div>
     </div>
 
-        {{-- Deposits Section --}}
-        <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body">
-                <h5 class="card-title fw-bold mb-4">Deposits</h5>
-                <div class="row g-4">
-                    <x-dashboard.stat-card icon="fas fa-hand-holding-usd" value="৳{{ number_format($dashboardData['totalDeposit'], 2) }}" label="Total Deposits" bg="success" />
-                    <x-dashboard.stat-card icon="fas fa-hand-holding-usd" value="৳{{ number_format($dashboardData['pendingDeposit'], 2) }}" label="Pending Deposits" bg="warning" />
-                    <x-dashboard.stat-card icon="fas fa-hand-holding-usd" value="৳{{ number_format($dashboardData['todayDeposit'], 2) }}" label="Today Deposits" bg="info" />
-                    <x-dashboard.stat-card icon="fas fa-hand-holding-usd" value="৳{{ number_format($dashboardData['last30DaysDeposit'], 2) }}" label="Last 30 days Deposits" bg="secondary" />
-                </div>
-            </div>
-        </div>
-
-        {{-- Withdrawals Section --}}
-        <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body">
-                <h5 class="card-title fw-bold mb-4">Withdrawals</h5>
-                <div class="row g-4">
-                    <x-dashboard.stat-card icon="fas fa-credit-card" value="৳{{$dashboardData['totalWithdrawals']}}" label="Total Withdrawn" bg="success" />
-                    <x-dashboard.stat-card icon="fas fa-credit-card" value="৳{{$dashboardData['pendingWithdrawals']}}" label="Pending  Withdrawals" bg="danger" />
-                    <x-dashboard.stat-card icon="fas fa-credit-card" value="৳{{$dashboardData['todayWithdrawals']}}" label="Today Withdrawals" bg="info" />
-                    <x-dashboard.stat-card icon="fas fa-percent" value="৳{{number_format($dashboardData['withdrawChargeAmount'], 2)}}" label="Total Withdrawal Charge" bg="secondary" />
-                </div>
-            </div>
-        </div>
-
-        {{-- Share purchased Section --}}
-<div class="card shadow-sm mb-4 border-0">
-    <div class="card-body">
-        <h5 class="card-title fw-bold mb-4">Share Purchase Details</h5>
-        <div class="row g-4">
-            <x-dashboard.stat-card
-                icon="fas fa-coins"
-                value="৳{{ number_format($dashboardData['totalFullPayment'], 2) }}"
-                label="Total Full Payment"
-                bg="primary"
-            />
-            <x-dashboard.stat-card
-                icon="fas fa-play-circle"
-                value="৳{{ number_format($dashboardData['totalInstallmentBuy'], 2) }}"
-                label="Total Installment"
-                bg="warning"
-            />
-            <x-dashboard.stat-card
-                icon="fas fa-money-bill-wave"
-                value="৳{{ number_format($dashboardData['totalInstallmentPaid'], 2) }}"
-                label="Total Installment Paid"
-                bg="success"
-            />
-            <x-dashboard.stat-card
-                icon="fas fa-hourglass-end"
-                value="৳{{ number_format($dashboardData['totalPendingInvoice'], 2) }}"
-                label="Total Pending Invoice"
-                bg="danger"
-            />
-        </div>
-    </div>
 </div>
 
-
-
-
-    </div>
+</div>
 @endsection

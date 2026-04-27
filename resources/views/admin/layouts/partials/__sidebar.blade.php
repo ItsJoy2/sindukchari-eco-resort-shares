@@ -45,183 +45,20 @@
                     </a>
                 </li>
 
-                {{-- All Investors  --}}
-                <li class="nav-item {{ Str::contains(request()->path(), 'investors') ? 'active' : '' }}">
-                    <a href="{{ route('admin.investment') }}">
-                        <i class="fas fa-chart-line"></i>
-                        <p>All Investments</p>
+                <!-- Tasks -->
+                <li class="nav-item {{ request()->is('admin/tasks*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.tasks.list') }}">
+                        <i class="fas fa-tasks"></i>
+                        <p>All Tasks</p>
                     </a>
                 </li>
-
-                <!-- Plans -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'admin.plans.index') ? 'active' : '' }}">
-                    <a href="{{ route('admin.plans.index') }}">
-                        <i class="fas fa-database"></i>
-                        <p>All Plans</p>
-                    </a>
-                </li>
-
-                <!-- Invoices -->
-                <li class="nav-item {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.invoices.index') }}">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <p>Invoices</p>
-                    </a>
-                </li>
-                <!-- Deposit -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'deposit') ? 'active' : '' }}">
-                    <a data-bs-toggle="collapse" href="#deposit">
-                        <i class="fas fa-money-check-alt"></i>
-                        <p>Deposit</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse" id="deposit">
-                        <ul class="nav nav-collapse">
-                            <li clsas="{{ Str::contains(request()->path(), 'settings') ? 'active' : '' }}"><a href="{{ route('admin.deposit.index') }}"><span class="sub-item">All Deposits</span></a></li>
-                            <li><a href="{{ route('admin.deposit_methods.index') }}"><span class="sub-item">Deposit methods</span></a></li>
-                        </ul>
-                    </div>
-                </li>
-
-                <!-- Withdraw -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'withdraw') ? 'active' : '' }}">
-                    <a href="{{ route('admin.withdraw.index') }}" class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-money-check-alt"></i>
-                            <p class="m-0">Withdraw</p>
-                        </div>
-
-                        @if(isset($dashboardData['pendingWithdrawalsCount']) && $dashboardData['pendingWithdrawalsCount'] > 0)
-                            <span class="badge bg-danger ms-2">
-                {{ $dashboardData['pendingWithdrawalsCount'] }}
-            </span>
-                        @endif
-                    </a>
-                </li>
-                <!-- Bonus Distribution -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'distribute') ? 'active' : '' }}">
-                    <a href="{{ route('admin.distribute.index') }}">
-                        <i class="fas fa-coins"></i>
-                        <p>Bonus Distribution</p>
-                    </a>
-                </li>
-                <!-- Transactions -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'transactions') ? 'active' : '' }}">
-                    <a href="{{ route('admin.transactions.index') }}">
-                        <i class="fas fa-money-check"></i>
-                        <p>Transactions</p>
-                    </a>
-                </li>
-
-                <!-- Accounts -->
-                <li class="nav-item {{ Str::contains(request()->path(), 'accounts') || Str::contains(request()->path(), 'accounts-category') ? 'active' : '' }}">
-
-                    <a data-bs-toggle="collapse" href="#accountsMenu">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <p>Accounts</p>
-                        <span class="caret"></span>
-                    </a>
-
-                    <div class="collapse {{ Str::contains(request()->path(), 'accounts') || Str::contains(request()->path(), 'accounts-category') ? 'show' : '' }}"
-                        id="accountsMenu">
-
-                        <ul class="nav nav-collapse">
-
-                            <!-- Accounts List -->
-                            <li class="{{ request()->routeIs('admin.accounts.index') ? 'active' : '' }}">
-                                <a href="{{ route('admin.accounts.index') }}">
-                                    <span class="sub-item">All Accounts</span>
-                                </a>
-                            </li>
-                            <!-- Categories -->
-                            <li class="{{ Str::contains(request()->path(), 'accounts-category') ? 'active' : '' }}">
-                                <a href="{{ route('admin.accounts-category.index') }}">
-                                    <span class="sub-item">Categories</span>
-                                </a>
-                            </li>
-
-                        </ul>
-                    </div>
-                </li>
-
-                <!-- Clubs -->
-                {{-- <li class="nav-item {{ Str::contains(request()->path(), 'clubs') ? 'active' : '' }}"><a data-bs-toggle="collapse" href="#clubsMenu">
-                        <i class="fas fa-star"></i>
-                        <p>Clubs</p>
-                        <span class="caret"></span>
-                    </a>
-                    <div class="collapse {{ Str::contains(request()->path(), 'clubs') ? 'show' : '' }}" id="clubsMenu">
-                        <ul class="nav nav-collapse">
-                            <li>
-                                <a href="{{ route('admin.clubs.index') }}">
-                                    <span class="sub-item {{ Str::contains(request()->path(), 'clubs') ? 'active' : '' }}">All Clubs</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('admin.clubs.create') }}">
-                                    <span class="sub-item {{ Str::contains(request()->path(), 'clubs/create') ? 'active' : '' }}">Create Club</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li> --}}
-
-
-                <!-- KYC -->
-                @php
-                    use App\Models\Kyc;
-                    $pendingCount = Kyc::where('status', 'pending')->count();
-                @endphp
-
-                <li class="nav-item {{ Str::contains(request()->path(), 'kyc') ? 'active' : '' }}">
-                    <a href="{{ route('admin.kyc.index') }}" class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-crown"></i>
-                            <p class="m-0">KYC</p>
-                        </div>
-
-                        @if ($pendingCount > 0)
-                            <span class="badge bg-danger ms-2">
-                {{ $pendingCount }}
-            </span>
-                        @endif
-                    </a>
-                </li>
-
-
-
-                <!-- Cron -->
-                {{-- <li class="nav-item {{ request()->is('cron') ? 'active' : '' }}">
-                    <a href="/cron">
-                        <i class="fas fa-school"></i>
-                        <p>Cron Job</p>
-                    </a>
-                </li> --}}
-
-                <!-- Tickets -->
-                {{-- <li class="nav-item {{ request()->is('tickets') ? 'active' : '' }}">
-                    <a href="/tickets">
-                        <i class="fas fa-ticket-alt"></i>
-                        <p>Tickets</p>
-                    </a>
-                </li> --}}
 
                 <!-- Settings -->
-                <li class="nav-item nav-item {{ Str::contains(request()->path(), 'settings') ? 'active' : '' }}">
-                    <a data-bs-toggle="collapse" href="#settings">
+                <li class="nav-item nav-item {{ Str::contains(request()->path(), 'admin.general.settings') ? 'active' : '' }}">
+                    <a data-bs-toggle="collapse" href="{{ route('admin.general.settings') }}">
                         <i class="fas fa-cog"></i>
-                        <p>Settings</p>
-                        <span class="caret"></span>
+                        <p>App Settings</p>
                     </a>
-                    <div class="collapse" id="settings">
-                        <ul class="nav nav-collapse">
-                            <li clsas="{{ Str::contains(request()->path(), 'settings') ? 'active' : '' }}"><a href="{{ route('admin.bonus-settings.edit') }}"><span class="sub-item">Bonus Setting</span></a></li>
-                            <li><a href="{{ route('admin.settings') }}"><span class="sub-item">Referral Settings</span></a></li>
-                            <li><a href="{{ route('admin.withdraw.settings') }}"><span class="sub-item">Withdraws Settings</span></a></li>
-                            <li><a href="{{ route('admin.transfer.settings') }}"><span class="sub-item">Transfer Settings</span></a></li>
-                            <li><a href="{{ route('admin.general.settings') }}"><span class="sub-item">App Settings</span></a></li>
-                        </ul>
-                    </div>
                 </li>
             </ul>
         </div>

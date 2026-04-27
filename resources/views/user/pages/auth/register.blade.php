@@ -29,7 +29,7 @@
   </head>
   <style>
     .card{
-        background-color: #5353533b;
+        background-color: #8787873b;
         box-shadow: 0 4px 12px rgba(0, 0, 0);
     }
     .form-control {
@@ -90,12 +90,6 @@
                         <input type="email" class="form-control text-white p_input" name="email" value="{{ old('email') }}">
                         @error('email') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
-
-                    <div class="form-group">
-                        <label>Mobile</label>
-                        <input type="text" class="form-control text-white p_input" name="mobile" value="{{ old('mobile') }}">
-                        @error('mobile') <small class="text-danger">{{ $message }}</small> @enderror
-                    </div>
                     <div class="form-group">
                         <label>Password</label>
                         <div class="input-group">
@@ -130,13 +124,6 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
-
-
-                    <div class="form-group">
-                        <label>Referral Code (optional)</label>
-                        <input type="text" class="form-control text-white p_input" name="referCode" value="{{ old('referCode') }}">
-                        @error('referCode') <small class="text-danger">{{ $message }}</small> @enderror
                     </div>
 
                     <div class="text-center">

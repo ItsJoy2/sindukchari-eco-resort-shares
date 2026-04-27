@@ -17,8 +17,6 @@
                     <option value="">-- Filter Users --</option>
                     <option value="active" {{ request('filter') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('filter') === 'inactive' ? 'selected' : '' }}>Inactive</option>
-                    <option value="blocked" {{ request('filter') === 'blocked' ? 'selected' : '' }}>Blocked</option>
-                    <option value="unblocked" {{ request('filter') === 'unblocked' ? 'selected' : '' }}>Unblocked</option>
                 </select>
             </div>
 
@@ -45,14 +43,7 @@
                         {{-- <th>Registered</th> --}}
                         <th>Name</th>
                         <th>Email</th>
-                        <th>Mobile</th>
-                        <th>Funding Wallet</th>
-                        <th>Bonus Wallet</th>
-                        {{-- <th>Refer Code</th> --}}
-                        <th>Referred By</th>
-                        {{-- <th>Email Verified</th> --}}
-                        {{-- <th>Active</th> --}}
-                        <th>Blocked</th>
+                        <th>status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -62,50 +53,82 @@
                     <tr>
                         <td>{{ $loop->iteration + $users->firstItem() - 1 }}</td>
 
-                        {{-- <td>{{ $user->created_at->format('d-m-Y') }}</td> --}}
-
                         <td>{{ $user->name }}</td>
 
                         <td>{{ $user->email }}</td>
 
-                        <td>{{ $user->mobile }}</td>
-
-                        <td>৳{{ number_format($user->funding_wallet ?? 0, 2) }}</td>
-
-                        <td>৳{{ number_format($user->bonus_wallet ?? 0, 2) }}</td>
-
-                        {{-- <td>{{ $user->refer_code }}</td> --}}
-
-                        <td>{{ $user->referredBy->name ?? 'N/A' }}</td>
-
-                        {{-- <td>
-                            <span class="badge {{ $user->email_verified_at ? 'bg-success' : 'bg-warning' }}">
-                                {{ $user->email_verified_at ? 'Verified' : 'Unverified' }}
-                            </span>
-                        </td> --}}
-
-                        {{-- <td>
+                        <td>
                             <span class="badge {{ $user->is_active ? 'bg-success' : 'bg-secondary' }}">
                                 {{ $user->is_active ? 'Active' : 'Inactive' }}
                             </span>
-                        </td> --}}
-
-                        <td>
-                            <span class="badge {{ $user->is_block ? 'bg-danger' : 'bg-success' }}">
-                                {{ $user->is_block ? 'Blocked' : 'Unblocked' }}
-                            </span>
                         </td>
 
                         <td>
-                            <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-eye"></i> View
-                            </a>
+                            <button type="button" class="btn btn-sm btn-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#userModal{{ $user->id }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
                         </td>
                     </tr>
 
+                    <!-- VIEW / EDIT USER MODAL -->
+                    <div class="modal fade" id="userModal{{ $user->id }}">
+                        <div class="modal-dialog">
+                            <form method="POST" action="{{ route('admin.users.update', $user->id) }}">
+                                @csrf
+                                @method('PUT')
+
+                                <input type="hidden" name="user_id" value="{{ $user->id }}">
+
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+                                        <h5>User Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+
+                                        <div class="mb-2">
+                                            <label>Name</label>
+                                            <input type="text" name="name"
+                                                value="{{ $user->name }}"
+                                                class="form-control">
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <label>Email</label>
+                                            <input type="email" name="email"
+                                                value="{{ $user->email }}"
+                                                class="form-control">
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <label>Status</label>
+                                            <select name="is_active" class="form-control">
+                                                <option value="1" {{ $user->is_active ? 'selected' : '' }}>Active</option>
+                                                <option value="0" {{ !$user->is_active ? 'selected' : '' }}>Inactive</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button class="btn btn-success w-100">
+                                            Update User
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
                 @empty
                     <tr>
-                        <td colspan="13" class="text-center py-3">No users found.</td>
+                        <td colspan="4" class="text-center py-3">No users found.</td>
                     </tr>
                 @endforelse
                 </tbody>

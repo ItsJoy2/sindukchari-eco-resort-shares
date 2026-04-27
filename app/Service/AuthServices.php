@@ -42,32 +42,19 @@ class AuthServices
             ])->withInput();
         }
 
-        if (is_null($user->email_verified_at)) {
-            $errorMessage = 'Email is not verified. Please check your inbox.';
+        if (!$user->is_active) {
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $errorMessage,
+                    'errors' => [
+                        'email' => 'Your account is inactive. Please contact admin.'
+                    ]
                 ]);
             }
 
             return back()->withErrors([
-                'email' => $errorMessage
-            ])->withInput();
-        }
-        if ($user->is_block == 1) {
-            $message = 'Your account is blocked. Please contact admin.';
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                ]);
-            }
-
-            return back()->withErrors([
-                'email' => $message
+                'email' => 'Your account is inactive. Please contact admin.'
             ])->withInput();
         }
 
@@ -108,8 +95,6 @@ class AuthServices
         $validator = Validator::make($request->all(), [
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email',
-            'mobile'     => 'required|string|max:15|min:10',
-            'referCode'  => 'nullable|string|max:8',
             'password'   => 'required|string|min:6|confirmed',
         ]);
 
@@ -126,52 +111,13 @@ class AuthServices
                 ->withInput();
         }
 
-        $refer_by = null;
-
-        if ($request->filled('referCode')) {
-            $referUser = User::where('refer_code', $request->input('referCode'))->first();
-            if (!$referUser) {
-                $error = ['referCode' => ['Referral code not found']];
-
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'errors' => $error
-                    ], 422);
-                }
-
-                return redirect()->back()->withErrors($error)->withInput();
-            }
-
-            $refer_by = $referUser->id;
-        }
-
         $user = User::create([
             'name'         => $request->input('name'),
             'email'        => $request->input('email'),
-            'mobile'       => $request->input('mobile'),
-            'refer_by'     => $refer_by,
-            'refer_code'   => Str::random(6),
             'password'     => Hash::make($request->input('password')),
         ]);
 
-        // Send email verification
-        // $user->notify(new VerifyEmail());
-
-        $user->email_verified_at = now();
         $user->save();
-
-
-        // if ($request->expectsJson()) {
-        //     return response()->json([
-        //         'success' => true,
-        //         'message' => 'Account created successfully. Please verify your email.'
-        //     ]);
-        // }
-
-        // return redirect()->route('login')
-        //     ->with('success', 'Account created successfully! Please check your email to verify your account.');
-
         Auth::login($user);
 
         return redirect()->route('user.dashboard')->with('success', 'Account created successfully! Please check your email to verify your account.');

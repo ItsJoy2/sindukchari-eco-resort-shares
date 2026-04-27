@@ -1,7 +1,7 @@
 <?php
 
 
-use App\Http\Controllers\user\AuthController;
+use App\Http\Controllers\User\AuthController;
 use Illuminate\Support\Facades\Route;
 
 //user auth routes

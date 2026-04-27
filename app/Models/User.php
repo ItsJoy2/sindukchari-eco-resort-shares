@@ -19,104 +19,17 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'mobile',
-        'funding_wallet',
-        'bonus_wallet',
-        'refer_by',
-        'refer_code',
-        'is_active',
-        'last_activated_at',
-        'is_block',
-        'rank',
-        'club',
-        'is_shareholder',
-        'is_director',
-        'kyc_status',
         'password',
-        'birthday',
-        'nid_or_passport',
-        'address',
-        'image',
-        'role',
+        'is_active',
     ];
 
     protected $hidden = [
         'password',
         'remember_token'
     ];
-
-    protected $casts = [
-        'last_activated_at' => 'datetime',
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',
-        'is_block' => 'boolean',
-        'kyc_status' => 'boolean',
-        'is_shareholder' => 'boolean',
-        'is_director' => 'boolean',
-    ];
-    public function referredBy(): BelongsTo
+    public function todos()
     {
-        return $this->belongsTo(User::class, 'refer_by');
-    }
-
-    public function referrals(): HasMany
-    {
-        return $this->hasMany(User::class, 'refer_by');
-    }
-    public function investors(): HasMany
-    {
-        return $this->hasMany(Investor::class);
-    }
-
-    public function hasReceivedActivationBonus(): bool
-    {
-        return $this->last_activated_at !== null;
-    }
-    public function totalTeamMembersCount(): int
-    {
-        $count = $this->referrals()->count();
-
-        foreach ($this->referrals as $referral) {
-            $count += $referral->totalTeamMembersCount();
-        }
-
-        return $count;
-    }
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($user) {
-            if (empty($user->refer_code)) {
-                $user->refer_code = self::generateReferCode();
-            }
-        });
-    }
-    public static function generateReferCode(): string
-    {
-        do {
-            $code = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6));
-        } while (self::where('refer_code', $code)->exists());
-
-        return $code;
-    }
-    public function deposits()
-    {
-        return $this->hasMany(Deposit::class);
-    }
-
-    public function nominees(): HasMany
-    {
-        return $this->hasMany(Nominee::class);
-    }
-    public function kyc()
-    {
-        return $this->hasOne(Kyc::class);
-    }
-    public function withdrawals()
-    {
-        return $this->hasMany(Withdrawal::class);
+        return $this->hasMany(Todo::class);
     }
 
 }

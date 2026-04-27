@@ -26,7 +26,7 @@
 
 <style>
     .card{
-        background-color: #5353533b;
+        background-color: #8787873b;
         box-shadow: 0 4px 12px rgba(0, 0, 0);
     }
     .form-control {
