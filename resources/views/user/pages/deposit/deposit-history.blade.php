@@ -95,7 +95,7 @@
 
           @empty
               <tr>
-                  <td colspan="6" class="text-center text-muted py-4">
+                  <td colspan="7" class="text-center text-muted py-4">
                       <i class="fa-solid fa-folder-open fa-2x mb-2"></i><br>
                       No deposit history found.
                   </td>
