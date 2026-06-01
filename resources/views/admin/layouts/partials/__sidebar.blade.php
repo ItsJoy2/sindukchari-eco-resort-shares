@@ -45,6 +45,13 @@
                     </a>
                 </li>
 
+                {{-- Guest Lists --}}
+                <li class="nav-item {{ Str::contains(request()->path(), 'guest-list') ? 'active' : '' }}">
+                    <a href="{{ route('admin.guest-list.index') }}">
+                        <i class="fas fa-user-friends"></i>
+                        <p>Guest List</p>
+                    </a>
+                </li>
                 {{-- All Investors  --}}
                 <li class="nav-item {{ Str::contains(request()->path(), 'investors') ? 'active' : '' }}">
                     <a href="{{ route('admin.investment') }}">

@@ -9,6 +9,7 @@ use App\Http\Controllers\admin\BonusSettingController;
 use App\Http\Controllers\admin\DepositController;
 use App\Http\Controllers\admin\DepositMethodController;
 use App\Http\Controllers\admin\GeneralSettingsController;
+use App\Http\Controllers\admin\GuestListController;
 use App\Http\Controllers\admin\KycController;
 use App\Http\Controllers\admin\PlansController;
 use App\Http\Controllers\admin\PoolDistributionController;
@@ -33,6 +34,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::post('users/update', [UsersController::class, 'update'])->name('admin.users.update');
     Route::get('users/{id}', [UsersController::class, 'show'])->name('admin.users.show');
     Route::post('users/wallet-update', [UsersController::class, 'updateWallet'])->name('admin.users.wallet.update');
+    Route::post('users/store', [UsersController::class, 'store'])->name('admin.users.store');
 
 
     // Plans
@@ -170,6 +172,9 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::post('distribute-shareholder',[PoolDistributionController::class, 'distributeShareholderPool'])->name('admin.distribute-shareholder');
     Route::post('distribute-director',[PoolDistributionController::class, 'distributeDirectorPool'])->name('admin.distribute-director');
 
+    Route::get('guest-list', [GuestListController::class, 'index'])->name('admin.guest-list.index');
+    Route::post('guest-list/store', [GuestListController::class, 'store'])->name('admin.guest-list.store');
+    Route::get('guest-list/export/{type}', [GuestListController::class, 'export'])->name('admin.guest-list.export');
 });
 
 Route::get('check',function(){

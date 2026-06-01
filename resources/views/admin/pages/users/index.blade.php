@@ -2,8 +2,15 @@
 
 @section('content')
 <div class="card">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="card-title mb-0">All Users</h4>
+
+        <button type="button"
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#createUserModal">
+            <i class="fas fa-plus"></i> Create User
+        </button>
     </div>
 
     <div class="card-body">
@@ -143,4 +150,93 @@
     </script>
     @endif
 </div>
+
+
+
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('admin.users.store') }}" method="POST">
+            @csrf
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <label>Name</label>
+                            <input type="text"
+                                   name="name"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>Email</label>
+                            <input type="email"
+                                   name="email"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>Mobile</label>
+                            <input type="text"
+                                   name="mobile"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>Password</label>
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>Sponsor ID (Refer Code)</label>
+                            <input type="text"
+                                   name="refer_code"
+                                   class="form-control"
+                                   placeholder="Optional">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Email Verification</label>
+                            <select name="email_verified" class="form-control">
+                                <option value="0">Not Verified</option>
+                                <option value="1">Verified</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Close
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+                        Create User
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection

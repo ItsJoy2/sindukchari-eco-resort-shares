@@ -96,6 +96,7 @@ class UsersController extends Controller
             'email'    => 'required|email|max:255|unique:users,email,' . $user->id,
             'mobile'   => 'required|string|max:20',
             'is_block' => 'required|boolean',
+            'email_verified' => 'required|boolean',
         ];
 
         if ($request->has('is_director')) {
@@ -103,6 +104,13 @@ class UsersController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        $validated['email_verified_at'] =
+            $request->email_verified == 1
+                ? ($user->email_verified_at ?? now())
+                : null;
+
+        unset($validated['email_verified']);
 
         $user->update($validated);
 
@@ -139,4 +147,40 @@ class UsersController extends Controller
         return back()->with('success', ucfirst(str_replace('_', ' ', $wallet)) . ' updated successfully.');
     }
 
+    // Create User
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'            => 'required|string|max:255',
+            'email'           => 'required|email|unique:users,email',
+            'mobile'          => 'required|string|max:20|unique:users,mobile',
+            'password'        => 'required|string|min:6',
+            'refer_code'      => 'nullable|exists:users,refer_code',
+            'email_verified'  => 'nullable|boolean',
+        ]);
+
+        $referBy = null;
+
+        if ($request->filled('refer_code')) {
+            $sponsor = User::where('refer_code', $request->refer_code)->first();
+            $referBy = $sponsor?->id;
+        }
+
+        User::create([
+            'name'               => $request->name,
+            'email'              => $request->email,
+            'mobile'             => $request->mobile,
+            'password'           => bcrypt($request->password),
+            'refer_by'           => $referBy,
+            'role'               => 'user',
+            'is_active'          => 1,
+            'is_block'           => 0,
+            'kyc_status'         => 0,
+            'funding_wallet'     => 0,
+            'bonus_wallet'       => 0,
+            'email_verified_at'  => $request->email_verified ? now() : null,
+        ]);
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+    }
 }

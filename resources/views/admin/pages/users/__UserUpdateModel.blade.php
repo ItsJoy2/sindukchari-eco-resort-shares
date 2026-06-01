@@ -47,6 +47,19 @@
                             <option value="1" {{ $user->is_director ? 'selected' : '' }}>Director</option>
                         </select>
                     </div>
+
+                    <!-- Email Verification Status -->
+                    <div class="mb-3">
+                        <label for="modal_email_verified" class="form-label">Email Verification</label>
+                        <select name="email_verified" id="modal_email_verified" class="form-control" required>
+                            <option value="0" {{ !$user->email_verified_at ? 'selected' : '' }}>
+                                Not Verified
+                            </option>
+                            <option value="1" {{ $user->email_verified_at ? 'selected' : '' }}>
+                                Verified
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
