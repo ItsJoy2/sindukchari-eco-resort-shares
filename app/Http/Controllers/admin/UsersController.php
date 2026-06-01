@@ -173,7 +173,7 @@ class UsersController extends Controller
             'password'           => bcrypt($request->password),
             'refer_by'           => $referBy,
             'role'               => 'user',
-            'is_active'          => 1,
+            'is_active'          => 0,
             'is_block'           => 0,
             'kyc_status'         => 0,
             'funding_wallet'     => 0,
