@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\admin;
 
+use App\Http\Controllers\Controller;
+use App\Models\Transactions;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class UsersController extends Controller
 {
@@ -126,25 +128,66 @@ class UsersController extends Controller
             'user_id'     => 'required|exists:users,id',
             'wallet_type' => 'required|in:funding_wallet,bonus_wallet',
             'action_type' => 'required|in:add,subtract',
-            'amount'      => 'required|numeric|min:0.00000001',
+            'amount'      => 'required|numeric',
         ]);
 
         $user   = User::findOrFail($request->user_id);
         $wallet = $request->wallet_type;
         $amount = (float)$request->amount;
 
-        if ($request->action_type === 'add') {
-            $user->$wallet = bcadd($user->$wallet, $amount, 8);
-        } else {
-            if (bccomp($user->$wallet, $amount, 8) < 0) {
-                return back()->with('error', 'Insufficient balance in the selected wallet.');
+        $walletName = $wallet === 'funding_wallet' ? 'Wallet' : 'Income Wallet';
+
+        DB::beginTransaction();
+
+        try {
+
+            if ($request->action_type === 'add') {
+
+                $user->$wallet = bcadd($user->$wallet, $amount, 8);
+
+                $remark = 'balance_adjustment';
+                $type   = '+';
+                $details = 'Admin added balance to ' . $walletName;
+
+            } else {
+
+                if (bccomp($user->$wallet, $amount, 8) < 0) {
+                    return back()->with('error', 'Insufficient balance in the selected wallet.');
+                }
+
+                $user->$wallet = bcsub($user->$wallet, $amount, 8);
+
+                $remark = 'balance_adjustment';
+                $type   = '-';
+                $details = 'Admin deducted balance from ' . $walletName;
             }
-            $user->$wallet = bcsub($user->$wallet, $amount, 8);
+
+            $user->save();
+
+            Transactions::create([
+                'transaction_id' => Transactions::generateTransactionId(),
+                'user_id'        => $user->id,
+                'amount'         => $amount,
+                'charge'         => 0,
+                'remark'         => $remark,
+                'type'           => $type,
+                'status'         => 'Completed',
+                'details'        => $details,
+            ]);
+
+            DB::commit();
+
+            return back()->with(
+                'success',
+                ucfirst(str_replace('_', ' ', $wallet)) . ' updated successfully.'
+            );
+
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return back()->with('error', $e->getMessage());
         }
-
-        $user->save();
-
-        return back()->with('success', ucfirst(str_replace('_', ' ', $wallet)) . ' updated successfully.');
     }
 
     // Create User

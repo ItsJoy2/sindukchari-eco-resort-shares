@@ -24,7 +24,8 @@ return new class extends Migration
                 'shareholder_pool',
                 'club_pool',
                 'rank_pool',
-                'invoice'
+                'invoice',
+                'balance_adjustment',
             ) NOT NULL
         ");
     }
@@ -47,7 +48,7 @@ return new class extends Migration
                 'director_pool',
                 'shareholder_pool',
                 'club_pool',
-                'rank_pool'
+                'rank_pool',
             ) NOT NULL
         ");
     }

@@ -7,7 +7,7 @@
     </div>
     <div class="card-body table-responsive">
         @php
-            $allowedTypes = ['transfer','convert','level_bonus','director_bonus','shareholder_bonus','club_bonus','rank_bonus'];
+            $allowedTypes = ['transfer','convert','level_bonus','director_bonus','shareholder_bonus','club_bonus','rank_bonus', 'invoice', 'balance_adjustment'];
         @endphp
 
         <form action="{{ route('admin.transactions.index') }}" method="GET" class="mb-3 d-flex align-items-center gap-2 flex-wrap">

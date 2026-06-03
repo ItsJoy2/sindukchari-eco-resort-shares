@@ -21,7 +21,9 @@ class TransactionsController extends Controller
             'director_bonus',
             'shareholder_bonus',
             'club_bonus',
-            'rank_bonus'
+            'rank_bonus',
+            'invoice',
+            'balance_adjustment'
         ];
 
         $query = Transactions::with('user')
