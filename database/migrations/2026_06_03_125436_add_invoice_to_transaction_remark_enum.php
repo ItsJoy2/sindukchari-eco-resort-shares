@@ -25,7 +25,7 @@ return new class extends Migration
                 'club_pool',
                 'rank_pool',
                 'invoice',
-                'balance_adjustment',
+                'balance_adjustment'
             ) NOT NULL
         ");
     }
@@ -50,7 +50,7 @@ return new class extends Migration
                 'club_pool',
                 'rank_pool',
                 'invoice',
-                'balance_adjustment',
+                'balance_adjustment'
             ) NOT NULL
         ");
     }
