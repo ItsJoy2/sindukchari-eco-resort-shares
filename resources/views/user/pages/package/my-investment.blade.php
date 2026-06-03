@@ -142,15 +142,16 @@
                                         <label><strong>Enter Amount to Pay</strong></label>
 
                                         <input type="number"
-                                               name="amount"
-                                               class="form-control amount-input"
-                                               min="1000"
-                                               step="1000"
-                                               required
-                                               placeholder="Enter amount">
+                                            name="amount"
+                                            class="form-control amount-input"
+                                            data-remaining="{{ $remaining }}"
+                                            min="1"
+                                            required
+                                            placeholder="Enter amount">
 
                                         <small class="text-muted">
-                                            Amount must be in multiples of 1000
+                                            Normal payment: multiples of 500.<br>
+                                            Full settlement: pay exact remaining amount (৳{{ number_format($remaining, 2) }}).
                                         </small>
 
                                     </div>
@@ -188,13 +189,45 @@
 @push('scripts')
 <script>
 document.querySelectorAll('.amount-input').forEach(input => {
+
     input.addEventListener('input', function () {
-        if (this.value && this.value % 1000 !== 0) {
-            this.setCustomValidity('Amount must be in multiples of 1000');
-        } else {
-            this.setCustomValidity('');
+
+        const value = parseFloat(this.value || 0);
+        const remaining = parseFloat(this.dataset.remaining);
+
+        this.setCustomValidity('');
+
+        if (!value) {
+            return;
+        }
+
+        // Full settlement allowed
+        if (value === remaining) {
+            return;
+        }
+
+        // Normal payment rules
+        if (value < 500) {
+            this.setCustomValidity(
+                'Minimum payment amount is 500 or pay the exact remaining amount.'
+            );
+            return;
+        }
+
+        if (value % 500 !== 0) {
+            this.setCustomValidity(
+                'Amount must be in multiples of 500.'
+            );
+            return;
+        }
+
+        if (value > remaining) {
+            this.setCustomValidity(
+                'Amount cannot exceed remaining balance.'
+            );
         }
     });
+
 });
 </script>
 @endpush

@@ -8,6 +8,7 @@ use App\Models\Deposit;
 use App\Models\Founder;
 use App\Models\Investor;
 use App\Models\Invoice;
+use App\Models\Package;
 use App\Models\PoolWallet;
 use App\Models\Transactions;
 use App\Models\User;
@@ -25,7 +26,7 @@ class AdminDashboardController extends Controller
 
         $dashboardData = Cache::remember('admin_dashboard_data', now()->hour(1), function () {
 
-            $totalShares = 20000;
+            $totalShares = Package::sum('total_share_quantity');
             $totalSoldShares = Investor::sum('quantity');
             $installmentShares = Investor::where('purchase_type', 'installment')->sum('quantity');
 

@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Models\BonusSetting;
+use App\Models\Investor;
 use App\Models\Invoice;
 use App\Models\Package;
-use App\Models\Investor;
 use App\Models\PoolWallet;
-use Illuminate\Support\Str;
-use App\Models\BonusSetting;
-use App\Models\Transactions;
-use Illuminate\Http\Request;
 use App\Models\ReactivationLog;
-use Illuminate\Support\Facades\DB;
+use App\Models\Transactions;
+use App\Models\User;
 use App\Service\TransactionService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
 
 class PurchaseController extends Controller
 {
@@ -204,6 +204,17 @@ class PurchaseController extends Controller
         $user->funding_wallet -= $payableAmount;
         $user->save();
 
+        Transactions::create([
+            'transaction_id' => Transactions::generateTransactionId(),
+            'user_id'        => $user->id,
+            'amount'         => $payableAmount,
+            'charge'         => 0,
+            'remark'         => 'invoice',
+            'type'           => '-',
+            'status'         => 'Completed',
+            'details'        => 'Full share investment amount paid',
+        ]);
+
         $investor->paid_amount = $payableAmount;
         $investor->status = 'paid';
         $investor->save();
@@ -237,6 +248,17 @@ class PurchaseController extends Controller
 
         $user->funding_wallet -= $firstInstallment;
         $user->save();
+
+        Transactions::create([
+        'transaction_id' => Transactions::generateTransactionId(),
+        'user_id'        => $user->id,
+        'amount'         => $firstInstallment,
+        'charge'         => 0,
+        'remark'         => 'invoice',
+        'type'           => '-',
+        'status'         => 'Completed',
+        'details'        => 'First installment payment for Share investment',
+    ]);
 
         $investor->paid_amount = $firstInstallment;
         $investor->paid_installments = 1;
@@ -447,6 +469,17 @@ class PurchaseController extends Controller
             $user->funding_wallet -= $totalPaymentRequired;
             $user->save();
 
+            Transactions::create([
+                'transaction_id' => Transactions::generateTransactionId(),
+                'user_id'        => $user->id,
+                'amount'         => $totalPaymentRequired,
+                'charge'         => 0,
+                'remark'         => 'invoice',
+                'type'           => '-',
+                'status'         => 'Completed',
+                'details'        => 'Installment payment for Share investment',
+            ]);
+
             // If inactive → Reactivate and log
             if ($investor->status === 'inactive') {
                 ReactivationLog::create([
@@ -454,6 +487,17 @@ class PurchaseController extends Controller
                     'user_id'       => $user->id,
                     'charge_amount' => $reactivationCharge,
                     'total_paid'    => $totalPaymentRequired,
+                ]);
+
+                Transactions::create([
+                    'transaction_id' => Transactions::generateTransactionId(),
+                    'user_id'        => $user->id,
+                    'amount'         => $reactivationCharge,
+                    'charge'         => 0,
+                    'remark'         => 'invoice',
+                    'type'           => '-',
+                    'status'         => 'Completed',
+                    'details'        => 'Share Investment reactivation charge',
                 ]);
 
                 $investor->status = 'active';
@@ -499,127 +543,238 @@ class PurchaseController extends Controller
 
     public function payAnyAmount(Request $request, $investorId)
     {
+        $user = auth()->user();
+
+        $investor = Investor::where('id', $investorId)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $settings = BonusSetting::first();
+        $reactivationCharge = $settings->reactivation_charge;
+
+        $remaining = $investor->total_amount - $investor->paid_amount;
+
+        if ($investor->status === 'inactive') {
+            $remaining += $reactivationCharge;
+        }
+
         $request->validate([
             'amount' => [
                 'required',
                 'numeric',
-                'min:1000',
-                function ($attribute, $value, $fail) {
-                    if ($value % 1000 !== 0) {
-                        $fail('Amount must be in multiples of 1000 (e.g. 1000, 2000, 3000).');
+                function ($attribute, $value, $fail) use ($remaining) {
+
+                    if ($value <= 0) {
+                        $fail('Amount must be greater than 0.');
+                        return;
+                    }
+
+                    // Exact remaining amount allowed
+                    if ((float)$value === (float)$remaining) {
+                        return;
+                    }
+
+                    if ($value < 500) {
+                        $fail('Minimum payment amount is 500.');
+                        return;
+                    }
+
+                    if ($value % 500 !== 0) {
+                        $fail('Amount must be in multiples of 500.');
                     }
                 },
             ],
         ]);
 
-        $user = auth()->user();
-        $investor = Investor::where('id', $investorId)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-
-        $payAmount = (float) $request->amount;
-        $settings = BonusSetting::first();
-        $reactivationCharge = $settings->reactivation_charge;
-
-        // Remaining amount + Reactivation (if inactive)
-        $remaining = $investor->total_amount - $investor->paid_amount;
-        if ($investor->status === 'inactive') {
-            $remaining += $reactivationCharge;
-        }
+        $payAmount = (float)$request->amount;
 
         if ($payAmount > $remaining) {
-            return back()->with('error', 'You cannot pay more than remaining amount: '.$remaining);
+            return back()->with(
+                'error',
+                'You cannot pay more than remaining amount: ' . number_format($remaining, 2)
+            );
         }
 
-        DB::transaction(function () use ($user, $investor, &$payAmount, $reactivationCharge) {
+        $isFullSettlement = ((float)$payAmount === (float)$remaining);
 
-            // 🔹 Wallet check (total needed)
-            $totalRequired = $payAmount;
-            if ($investor->status === 'inactive') {
-                $totalRequired += $reactivationCharge;
-            }
-            if ($user->funding_wallet < $totalRequired) {
-                throw new \Exception('Insufficient wallet balance.');
-            }
+        try {
 
-            // Deduct total
-            $user->funding_wallet -= $totalRequired;
-            $user->save();
+            DB::transaction(function () use (
+                $user,
+                $investor,
+                $payAmount,
+                $reactivationCharge,
+                $isFullSettlement
+            ) {
 
-            // 🔹 Handle Reactivation fee
-            if ($investor->status === 'inactive') {
-                ReactivationLog::create([
-                    'investor_id'   => $investor->id,
-                    'user_id'       => $user->id,
-                    'charge_amount' => $reactivationCharge,
-                    'total_paid'    => $reactivationCharge,
+                $totalRequired = $payAmount;
+
+                if ($investor->status === 'inactive') {
+                    $totalRequired += $reactivationCharge;
+                }
+
+                if ($user->funding_wallet < $totalRequired) {
+                    throw new \Exception('Insufficient wallet balance.');
+                }
+
+                // Deduct wallet
+                $user->funding_wallet -= $totalRequired;
+                $user->save();
+
+                Transactions::create([
+                    'transaction_id' => Transactions::generateTransactionId(),
+                    'user_id'        => $user->id,
+                    'amount'         => $payAmount,
+                    'charge'         => 0,
+                    'remark'         => 'invoice',
+                    'type'           => '-',
+                    'status'         => 'Completed',
+                    'details'        => 'Installment payment for Share investment',
                 ]);
 
-                $investor->status = 'active';
-                $investor->save();
+                // Reactivation
+                if ($investor->status === 'inactive') {
 
-                $payAmount -= $reactivationCharge;
-            }
+                    ReactivationLog::create([
+                        'investor_id'   => $investor->id,
+                        'user_id'       => $user->id,
+                        'charge_amount' => $reactivationCharge,
+                        'total_paid'    => $reactivationCharge,
+                    ]);
 
-            // Pay pending invoices first
-            $pendingInvoices = Invoice::where('investor_id', $investor->id)
-                ->where('status', 'pending')
-                ->orderBy('id', 'ASC')
-                ->get();
+                    Transactions::create([
+                        'transaction_id' => Transactions::generateTransactionId(),
+                        'user_id'        => $user->id,
+                        'amount'         => $reactivationCharge,
+                        'charge'         => 0,
+                        'remark'         => 'invoice',
+                        'type'           => '-',
+                        'status'         => 'Completed',
+                        'details'        => 'Share Investment reactivation charge',
+                    ]);
 
-            foreach ($pendingInvoices as $invoice) {
-                if ($payAmount <= 0) break;
+                    $investor->status = 'active';
+                    $investor->save();
+                }
 
-                if ($payAmount < $invoice->amount) break;
+                // FULL SETTLEMENT
+                if ($isFullSettlement) {
 
-                $invoice->status = 'paid';
-                $invoice->save();
+                    $remainingPrincipal = $investor->total_amount - $investor->paid_amount;
 
-                $investor->paid_installments += 1;
-                $investor->paid_amount += $invoice->amount;
-                $investor->save();
+                    $pendingInvoices = Invoice::where('investor_id', $investor->id)
+                        ->where('status', 'pending')
+                        ->orderBy('id', 'ASC')
+                        ->get();
 
-                $this->levelBonus($user, $investor, $invoice->amount);
-                $this->poolBonus($invoice->amount);
+                    $advanceAmount = $remainingPrincipal;
 
-                $payAmount -= $invoice->amount;
-            }
+                    foreach ($pendingInvoices as $invoice) {
 
-            // 🔹 Create advance invoice if any leftover
-            if ($payAmount > 0) {
-                Invoice::create([
-                    'invoice_no' => 'INV-' . Str::upper(Str::random(6)),
-                    'user_id' => $user->id,
-                    'investor_id' => $investor->id,
-                    'amount' => $payAmount,
-                    'type' => 'installment',
-                    'status' => 'paid'
-                ]);
+                        $invoice->status = 'paid';
+                        $invoice->save();
 
-                $investor->paid_installments += 1;
-                $investor->paid_amount += $payAmount;
-                $investor->save();
+                        $advanceAmount -= $invoice->amount;
+                    }
 
-                $this->levelBonus($user, $investor, $payAmount);
-                $this->poolBonus($payAmount);
-            }
+                    if ($advanceAmount > 0) {
 
-            // 🔹 Update final status
-            if ($investor->paid_amount >= $investor->total_amount) {
-                $investor->status = 'paid';
-                $investor->save();
+                        Invoice::create([
+                            'invoice_no' => 'INV-' . Str::upper(Str::random(6)),
+                            'user_id' => $user->id,
+                            'investor_id' => $investor->id,
+                            'amount' => $advanceAmount,
+                            'type' => 'installment',
+                            'status' => 'paid',
+                        ]);
+                    }
 
-                Invoice::where('investor_id', $investor->id)
+                    $investor->paid_amount = $investor->total_amount;
+                    $investor->status = 'paid';
+                    $investor->save();
+
+                    $this->levelBonus($user, $investor, $remainingPrincipal);
+                    $this->poolBonus($remainingPrincipal);
+
+                    return;
+                }
+
+                //NORMAL PAYMENT
+                $remainingPayment = $payAmount;
+
+                $pendingInvoices = Invoice::where('investor_id', $investor->id)
                     ->where('status', 'pending')
-                    ->update(['status' => 'paid', 'updated_at' => now()]);
-            } else {
-                $investor->status = 'active';
+                    ->orderBy('id', 'ASC')
+                    ->get();
+
+                foreach ($pendingInvoices as $invoice) {
+
+                    if ($remainingPayment <= 0) {
+                        break;
+                    }
+
+                    if ($remainingPayment < $invoice->amount) {
+                        break;
+                    }
+
+                    $invoice->status = 'paid';
+                    $invoice->save();
+
+                    $investor->paid_installments += 1;
+                    $investor->paid_amount += $invoice->amount;
+                    $investor->save();
+
+                    $this->levelBonus($user, $investor, $invoice->amount);
+                    $this->poolBonus($invoice->amount);
+
+                    $remainingPayment -= $invoice->amount;
+                }
+
+                //ADVANCE PAYMENT
+                if ($remainingPayment > 0) {
+
+                    Invoice::create([
+                        'invoice_no' => Transactions::generateTransactionId(),
+                        'user_id' => $user->id,
+                        'investor_id' => $investor->id,
+                        'amount' => $remainingPayment,
+                        'type' => 'installment',
+                        'status' => 'paid',
+                    ]);
+
+                    $investor->paid_installments += 1;
+                    $investor->paid_amount += $remainingPayment;
+                    $investor->save();
+
+                    $this->levelBonus($user, $investor, $remainingPayment);
+                    $this->poolBonus($remainingPayment);
+                }
+
+                if ($investor->paid_amount >= $investor->total_amount) {
+
+                    $investor->status = 'paid';
+
+                    Invoice::where('investor_id', $investor->id)
+                        ->where('status', 'pending')
+                        ->update([
+                            'status' => 'paid',
+                            'updated_at' => now(),
+                        ]);
+
+                } else {
+
+                    $investor->status = 'active';
+                }
+
                 $investor->save();
-            }
+            });
 
-        });
+            return back()->with('success', 'Payment completed successfully.');
 
-        return back()->with('success', 'Payment completed successfully.');
+        } catch (\Exception $e) {
+
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function myInvestments()

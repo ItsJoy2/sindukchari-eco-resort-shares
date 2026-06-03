@@ -22,7 +22,7 @@
                 <label for="keyword" class="mr-2">Filter by Remark:</label>
                 <select name="keyword" id="keyword" class="form-control">
                     <option value="">-- All --</option>
-                    @foreach (['transfer', 'convert', 'level_bonus', 'director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus'] as $remark)
+                    @foreach (['transfer', 'convert', 'level_bonus', 'director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus', 'invoice'] as $remark)
                         <option value="{{ $remark }}" {{ ($keyword ?? '') == $remark ? 'selected' : '' }}>
                             {{ ucfirst(str_replace('_',' ',$remark)) }}
                         </option>
@@ -32,7 +32,7 @@
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
 
-        <table class="table table-striped">
+        <table class="table table-striped table-responsive-md">
             <thead>
                 <tr>
                     <th>Date</th>

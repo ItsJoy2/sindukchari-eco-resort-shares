@@ -26,7 +26,7 @@ class TransactionsController extends Controller
     {
         $keyword = $request->get('keyword');
 
-        $allowedTypes = ['transfer', 'convert', 'level_bonus', 'director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus'];
+        $allowedTypes = ['transfer', 'convert', 'level_bonus', 'director_bonus', 'shareholder_bonus', 'club_bonus', 'rank_bonus' , 'investment', 'withdrawal', 'invoice'];
 
         $query = Transactions::where('user_id', $request->user()->id)
                             ->whereIn('remark', $allowedTypes);

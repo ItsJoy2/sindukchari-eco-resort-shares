@@ -14,3 +14,13 @@
     <link rel="stylesheet" href="{{ asset('assets/user/css/styles.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/user/css/style.css') }}">
 @stack('styles')
+
+
+<style>
+    select.form-control {
+        color: #d7d7d7;
+    }
+        select.form-control option {
+        color: #d7d7d7;
+    }
+</style>
