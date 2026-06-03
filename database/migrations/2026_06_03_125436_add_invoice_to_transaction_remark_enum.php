@@ -49,6 +49,8 @@ return new class extends Migration
                 'shareholder_pool',
                 'club_pool',
                 'rank_pool',
+                'invoice',
+                'balance_adjustment',
             ) NOT NULL
         ");
     }
